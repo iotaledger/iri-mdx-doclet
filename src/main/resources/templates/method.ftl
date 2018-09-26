@@ -36,7 +36,7 @@ No response examples available
 </#if>
 </Section>
 </#list>
-</Tabs<
+</Tabs>
 
 
 
