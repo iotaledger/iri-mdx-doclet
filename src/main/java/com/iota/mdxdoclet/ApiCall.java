@@ -1,6 +1,12 @@
 package com.iota.mdxdoclet;
 
+/**
+ * Example of how to define a list of methods you wish to document.
+ * This Enum works together with IOTA IRI
+ *
+ */
 public enum ApiCall {
+    
 	NODE_INFO("getNodeInfo"),
 	GET_NEIGHBORS("getNeighbors"),
 	ADD_NEIGHBORS("addNeighbors"),
@@ -35,7 +41,7 @@ public enum ApiCall {
 		return command;
 	}
 	
-	public String getCommandStatement() {
+	public String getProgrammedName() {
 		return command + "Statement";
 	}
 	
@@ -45,19 +51,6 @@ public enum ApiCall {
 	
 	public String getParam() {
 		return param;
-	}
-	
-	public static ApiCall getApiCall(String function) {
-		for (ApiCall api : ApiCall.values()) {
-			if (function.equals(api.getCommandStatement())) {
-				return api;
-			}
-		}
-		return null;
-	}
-	
-	public static boolean isApiCall(String function) {
-		return getApiCall(function) != null;
 	}
 	
 	@Override

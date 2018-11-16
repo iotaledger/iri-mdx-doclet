@@ -2,7 +2,7 @@ package com.iota.mdxdoclet.example;
 
 import java.util.List;
 
-import com.iota.mdxdoclet.ApiCall;
+import com.iota.mdxdoclet.MethodCall;
 import com.sun.javadoc.MethodDoc;
 
 public interface Export {
@@ -13,7 +13,7 @@ public interface Export {
 	 * @param api The Related API command
 	 * @return the example code
 	 */
-	String generateExample(MethodDoc command, ApiCall api);
+	String generateExample(MethodDoc command, MethodCall api);
 
 	
 	/**
@@ -22,7 +22,7 @@ public interface Export {
 	 * @param api The API command
 	 * @return the response code
 	 */
-	String generateResponse(MethodDoc command, ApiCall api);
+	String generateResponse(MethodDoc command, MethodCall api);
 	
 	/**
 	 * Generates response data based on a list of methods
@@ -31,7 +31,7 @@ public interface Export {
 	 * @param methods The list of methods (public getters with javadoc)
 	 * @return the response code
 	 */
-	String generateResponse(MethodDoc command, ApiCall api, List<MethodDoc> methods);
+	String generateResponse(MethodDoc command, MethodCall api, List<MethodDoc> methods);
 	
 	/**
 	 * Generates an example error

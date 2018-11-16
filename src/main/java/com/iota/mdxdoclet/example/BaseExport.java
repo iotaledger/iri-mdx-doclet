@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.iota.mdxdoclet.ApiCall;
+import com.iota.mdxdoclet.MethodCall;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.Type;
@@ -13,10 +14,10 @@ public abstract class BaseExport implements Export {
 	protected static final String CMD = "%cmd";
 
 	@Override
-	public String generateExample(MethodDoc command, ApiCall api) {
+	public String generateExample(MethodDoc command, MethodCall api) {
 		
 		String start = getPost();
-		StringBuilder generatedCommand = new StringBuilder("{\"command\": \"" + api.toString() + "\"");
+		StringBuilder generatedCommand = new StringBuilder("{\"command\": \"" + api.name() + "\"");
 		
 		for (Parameter p : command.parameters()){
 			String name = p.name();
@@ -30,7 +31,7 @@ public abstract class BaseExport implements Export {
 	}
 	
 	@Override
-	public String generateResponse(MethodDoc command, ApiCall api) {
+	public String generateResponse(MethodDoc command, MethodCall api) {
 		String start = getResponse();
 		String responseObject = "\"duration\": " + exampleInt();
 		
@@ -45,7 +46,7 @@ public abstract class BaseExport implements Export {
 	
 	
 	@Override
-	public String generateResponse(MethodDoc command, ApiCall api, List<MethodDoc> methods) {
+	public String generateResponse(MethodDoc command, MethodCall api, List<MethodDoc> methods) {
 		String start = getResponse();
 		StringBuilder generatedCommand = new StringBuilder("");
 		
@@ -68,7 +69,7 @@ public abstract class BaseExport implements Export {
 		return "{\"error\": \"'command' parameter has not been specified\"}";
 	}
 	
-	private String generateExampleForCallAndType(ApiCall api, String argname, Type t) {
+	private String generateExampleForCallAndType(MethodCall api, String argname, Type t) {
 		String type = t.typeName();
 		if (t.asParameterizedType() != null) {
 			type = t.asParameterizedType().typeArguments()[0].typeName();
@@ -78,12 +79,12 @@ public abstract class BaseExport implements Export {
 		generatedCommand.append("\"" + argname + "\": ");
 		if (t.dimension().equals("[]") || t.asParameterizedType() != null) { //parameterized is a list of sorts, or T
 			generatedCommand.append("[");
-			generatedCommand.append("\"" + getExampleData(api.toString(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
 			generatedCommand.append(", ");
-			generatedCommand.append("\"" + getExampleData(api.toString(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
 			generatedCommand.append("]");
 		} else {
-			generatedCommand.append("\"" + getExampleData(api.toString(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
 		}
 		return generatedCommand.toString();
 	}

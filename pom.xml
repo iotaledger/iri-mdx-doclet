@@ -5,7 +5,7 @@
 
 	<groupId>com.iota</groupId>
 	<artifactId>mdxdoclet</artifactId>
-	<version>0.1</version>
+	<version>0.2</version>
 	<packaging>jar</packaging>
 
 	<name>mdxdoclet</name>
@@ -66,6 +66,15 @@
 				</executions>
 			</plugin>
 
+            <plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-surefire-plugin</artifactId>
+			    <version>2.22.1</version>
+			    <configuration>
+			        <useSystemClassLoader>false</useSystemClassLoader>
+			    </configuration>
+			</plugin>
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -93,6 +102,7 @@
 				<toolsjar>${java.home}/../lib/tools.jar</toolsjar>
 			</properties>
 		</profile>
+		
 		<profile>
 			<id>mac-profile</id>
 			<activation>

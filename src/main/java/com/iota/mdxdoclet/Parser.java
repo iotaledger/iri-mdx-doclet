@@ -39,12 +39,12 @@ public class Parser {
 		this.exports = new ArrayList<>();
 	}
 
-	public void renderMethod(OutputStream out, MethodDoc methodDoc, ApiCall api) throws IOException, TemplateException {
+	public void renderMethod(OutputStream out, MethodDoc methodDoc, MethodCall call) throws IOException, TemplateException {
 		Writer w = new OutputStreamWriter(out);
-		render(w, methodDoc, "method.ftl", api);
+		render(w, methodDoc, "method.ftl", call);
 	}
 
-	private void render(Writer w, MethodDoc doc, String templateName, ApiCall api)
+	private void render(Writer w, MethodDoc doc, String templateName, MethodCall api)
 			throws IOException, TemplateException {
 		Template template = configuration.getTemplate(templateName);
 		Map<String, Object> input = new HashMap<String, Object>();
