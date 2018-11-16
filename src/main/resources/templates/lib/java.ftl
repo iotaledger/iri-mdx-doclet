@@ -3,7 +3,9 @@
   <#assign  ret="" />
   <#if executableMemberDoc.annotations??>
     <#list executableMemberDoc.annotations() as annotationDesc>
-      <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
+      <#if annotationDesc.annotationType() != "com.iota.mdxdoclet.Document">
+        <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
+      </#if>
     </#list>
   </#if>
   <#return ret>

@@ -3,6 +3,8 @@ package com.iota.mdxdoclet.example;
 import java.util.List;
 
 import com.iota.mdxdoclet.MethodCall;
+import com.iota.mdxdoclet.data.ReturnParam;
+import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 
 public interface Export {
@@ -28,10 +30,10 @@ public interface Export {
 	 * Generates response data based on a list of methods
 	 * @param command The command the response is from (Statement in API)
 	 * @param api The API command
-	 * @param methods The list of methods (public getters with javadoc)
+	 * @param fields The list of fields (only those with javadoc)
 	 * @return the response code
 	 */
-	String generateResponse(MethodDoc command, MethodCall api, List<MethodDoc> methods);
+	String generateResponse(MethodDoc command, MethodCall api, ReturnParam[] fields);
 	
 	/**
 	 * Generates an example error

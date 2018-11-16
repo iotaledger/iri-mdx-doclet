@@ -54,7 +54,19 @@ No response examples available
 Returns ${java.link(returnclass)}
 </#if>
 
-<@java.returnTags util.parseReturnTag(subject.tags("return"), returnclass) />
+<#if returnParams??>
+|Return | Description |
+|--|--|
+  <#list returnParams as field>
+    <@compress  single_line=true>
+      | ${field.getName()} | ${field.getText()} |
+    </@compress>
+    <#sep>
+
+    </#sep>
+  </#list>
+</#if>
+
 </#if>
 
 ***

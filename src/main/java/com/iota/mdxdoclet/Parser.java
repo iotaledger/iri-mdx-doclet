@@ -1,8 +1,10 @@
 package com.iota.mdxdoclet;
 
 import com.iota.mdxdoclet.data.Example;
+import com.iota.mdxdoclet.data.ReturnParam;
 import com.iota.mdxdoclet.example.Export;
 import com.sun.javadoc.ClassDoc;
+import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Tag;
 
@@ -56,19 +58,14 @@ public class Parser {
 			input.put("returnclass", c);
 		}
 		
-		//Only generate methods once, if c == null, returns empty list
-		List<MethodDoc> methods = publicGetMethods(c);
+		//Only generate fields once, if c == null, returns empty list
+		ReturnParam[] fields = util.parseReturnTag(returnTags, c, doc, api);
 
 		// Make the examples
 		List<Example> examples = new java.util.ArrayList<>();
 		for (Export x : exports) {
 			//Response based on return class or default + return var, or default in case of void
-			String response;
-			if (c != null) {
-				response = x.generateResponse(doc, api, methods);
-			} else {
-				response = x.generateResponse(doc, api);
-			}
+			String response = x.generateResponse(doc, api, fields);
 			
 			examples.add(new Example(
 				x.generateExample(doc, api), 
@@ -78,30 +75,38 @@ public class Parser {
 				x.getLanguage())
 			);
 		}
+		
+		
 
+		//<@java.returnTags util.parseReturnTag(subject.tags("return"), returnclass) />
+		input.put("returnParams", fields);
 		input.put("examples", examples.toArray(new Example[] {}));
 		input.put("lineNumber", doc.position().line() + "");
 		input.put("subject", doc);
 		input.put("util", util);
-		input.put("name", api.toString());
+		input.put("name", api.name());
 		template.process(input, w);
 	}
 	
-	public ArrayList<MethodDoc> publicGetMethods(ClassDoc doc) {
-		return publicGetMethods(doc, new ArrayList<MethodDoc>());
+	public ArrayList<FieldDoc> getDocumentedFields(ClassDoc doc, MethodCall api, Tag[] returnTags) {
+	    List<ReturnParam> returns = util.parseFields(doc);
+	    if (returns.isEmpty()) {
+	        //returns.add(new ReturnParam(api.getParam() ,))
+	    }
+		return getDocumentedFields(doc, new ArrayList<FieldDoc>());
 	}
 
-	private ArrayList<MethodDoc> publicGetMethods(ClassDoc c, ArrayList<MethodDoc> docs) {
+	private ArrayList<FieldDoc> getDocumentedFields(ClassDoc c, ArrayList<FieldDoc> docs) {
 		if (c == null)
 			return docs;
 		
 		if (c.superclass() != null) {
-			publicGetMethods(c.superclass(), docs);
+		    getDocumentedFields(c.superclass(), docs);
 		}
 
-		for (MethodDoc m : c.methods()) {
-			if (m.isPublic() && m.inlineTags().length > 0 && m.name().startsWith("get")) {
-				docs.add(m);
+		for (FieldDoc field : c.fields(false)) {
+		    if (field.inlineTags().length > 0) {
+				docs.add(field);
 			}
 		}
 		return docs;

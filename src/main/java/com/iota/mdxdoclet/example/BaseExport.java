@@ -1,10 +1,10 @@
 package com.iota.mdxdoclet.example;
 
-import java.util.List;
 import java.util.Random;
 
 import com.iota.mdxdoclet.ApiCall;
 import com.iota.mdxdoclet.MethodCall;
+import com.iota.mdxdoclet.data.ReturnParam;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.Type;
@@ -46,18 +46,15 @@ public abstract class BaseExport implements Export {
 	
 	
 	@Override
-	public String generateResponse(MethodDoc command, MethodCall api, List<MethodDoc> methods) {
+	public String generateResponse(MethodDoc command, MethodCall api, ReturnParam[] fields) {
 		String start = getResponse();
 		StringBuilder generatedCommand = new StringBuilder("");
 		
-		for (int i = 0; i < methods.size(); i++) {
-			MethodDoc m = methods.get(i);
-			
-			String name = m.name().substring(3);
-			String param = name.substring(0, 1).toLowerCase() + name.substring(1); 
-			
+		for (int i = 0; i < fields.length; i++) {
+		    ReturnParam field = fields[i];
+
 			if (i != 0) generatedCommand.append(", ");
-			generatedCommand.append(generateExampleForCallAndType(api, param, m.returnType()));
+			generatedCommand.append(generateExampleForCallAndType(api, field.getName(), field.getReturnType()));
 			
 		}
 		start = start.replace(CMD, generatedCommand.toString());

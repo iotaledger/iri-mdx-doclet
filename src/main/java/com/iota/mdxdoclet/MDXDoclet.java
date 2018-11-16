@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +56,7 @@ public class MDXDoclet extends Doclet  {
 	    configuration.setBooleanFormat("yes,no");
 	    configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
-	    parser = new Parser(configuration, new Util(root));
+	    parser = new Parser(configuration, new Util());
 	    parser.addExport(new Python());
 	    parser.addExport(new NodeJS());
 	    parser.addExport(new CURL());
