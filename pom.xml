@@ -42,6 +42,7 @@
 
 	<build>
 		<plugins>
+			<!--  
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -64,17 +65,15 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-
+			</plugin>-->
             <plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-surefire-plugin</artifactId>
-			    <version>2.22.1</version>
-			    <configuration>
-			        <useSystemClassLoader>false</useSystemClassLoader>
-			    </configuration>
-			</plugin>
-
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.1</version>
+                <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
