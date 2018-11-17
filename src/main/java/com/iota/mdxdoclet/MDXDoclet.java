@@ -27,19 +27,14 @@ import freemarker.template.Version;
 
 public class MDXDoclet extends Doclet  {
 	
-	private static final String API_NAME = "API";
-	
 	private static String version = "Unknown";
-	
+
 	/**
-     * Fallback: ApiCall.class values
-     */
-	private static List<MethodCall> methodList = getEnumList(ApiCall.class.getName());
-	
-	/**
-	 * Fallback: API_NAME
+	 * If empty/null, all classes are checked
 	 */
-	private static List<String> classeslist = Arrays.asList(new String[] {API_NAME});
+	private static List<String> classesList = null;
+	
+	private static String repoUrl = null;
 	
 	private Parser parser;
 	
@@ -56,7 +51,12 @@ public class MDXDoclet extends Doclet  {
 	    configuration.setBooleanFormat("yes,no");
 	    configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
 
-	    parser = new Parser(configuration, new Util());
+	    Util util = new Util();
+	    
+	    // https://github.com/iotaledger/iri/blob/dev/src/main/java/
+	    util.setRepoUrl(repoUrl);
+	    
+	    parser = new Parser(configuration, util);
 	    parser.addExport(new Python());
 	    parser.addExport(new NodeJS());
 	    parser.addExport(new CURL());
@@ -64,7 +64,7 @@ public class MDXDoclet extends Doclet  {
 
     private void generate(ClassDoc apiDoc) {
         for (MethodDoc m : apiDoc.methods(false)) {
-            MethodCall call = getAnnotationData(m, Document.class.getSimpleName());
+            DocumentMethodAnnotation call = getAnnotationData(m, Document.class.getSimpleName());
             if (call != null) {
                 System.out.println("Generating " + call);
                 
@@ -86,16 +86,17 @@ public class MDXDoclet extends Doclet  {
         }
 	}
     
-    /*
-     * STATIC METHODS - USED BY DOCLET
-     * 
+    /**
+     * Reads 
+     * @param m
+     * @param annotationName
+     * @return
      */
-    
-    private MethodCall getAnnotationData(MethodDoc m, String annotationName) {
+    private DocumentMethodAnnotation getAnnotationData(MethodDoc m, String annotationName) {
         for (AnnotationDesc anon : m.annotations()){
             if (anon.annotationType().name().equals(annotationName)) {
                 ElementValuePair[] values = anon.elementValues();
-                return new MethodCall(m, 
+                return new DocumentMethodAnnotation(m, 
                                       valueFromPair(values, "name"), 
                                       valueFromPair(values, "returnParam"));
             }
@@ -115,15 +116,24 @@ public class MDXDoclet extends Doclet  {
         }
         return null;
     }
+    
+    /*
+     * STATIC METHODS - USED BY DOCLET
+     * 
+     */
 
     public static boolean start(RootDoc root) {
 		System.out.println("Generating MDX docs for IRI V" + version);
 		MDXDoclet doclet = new MDXDoclet(root);
 		
 		for (ClassDoc c : root.classes()) {
-        	if (classeslist.contains(c.name())) {
+        	if (classesList == null || classesList.isEmpty() || classesList.contains(c.name())) {
         		doclet.generate(c);
-        		break;
+        		
+        		if (classesList != null && !classesList.isEmpty()) {
+        		    classesList.remove(c.name());
+        		    if (classesList.isEmpty()) break;
+        		}
         	}
         }
         
@@ -140,9 +150,9 @@ public class MDXDoclet extends Doclet  {
 	public static int optionLength(String option) {
 		if (option.equals("-version")) {
 			return 2;
-		} else if (option.equals("-methodlist")) {
-            return 2;
         } else if (option.equals("-classeslist")) {
+            return 2;
+        } else if (option.equals("-repolink")) {
             return 2;
         }
 		return Doclet.optionLength(option);
@@ -159,33 +169,14 @@ public class MDXDoclet extends Doclet  {
 		for (int i = 0; i < args.length; ++i) {
 			if (args[i][0].equals("-version")) {
 				version = args[i][1];
-			} else if (args[i][0].equals("-methodlist")) {
-                methodList = getEnumList(args[i][1]);
-                if (methodList == null) methodList = getEnumList(ApiCall.class.getName());
-                
             } else if (args[i][0].equals("-classeslist")) {
-                classeslist = getList(args[i][1]);
-                if (classeslist == null) classeslist = Arrays.asList(new String[] {API_NAME});
+                classesList = getList(args[i][1]);
+            } else if (args[i][0].equals("-repolink")) {
+                repoUrl = args[i][1];
             }
 		}
 		
 		return Doclet.validOptions(args, err);
-	}
-	
-	static private List<MethodCall> getEnumList(String string) {
-	    Class<?> clazz;
-        try {
-            clazz = Class.forName(string);
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-        
-        if (clazz.isEnum() && MethodCall.class.isAssignableFrom(clazz)) {
-            MethodCall[] values = (MethodCall[]) clazz.getEnumConstants();
-            return Arrays.asList(values);
-        } else {
-            return null;
-        }
 	}
 	
 	/**

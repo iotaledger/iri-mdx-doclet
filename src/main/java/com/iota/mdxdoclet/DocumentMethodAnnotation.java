@@ -7,14 +7,14 @@ import com.sun.javadoc.MethodDoc;
  * Represents a {@link Document} annotation through the java Doclet API.
  * 
  */
-public class MethodCall {
+public class DocumentMethodAnnotation {
     
     private MethodDoc method;
 
     private String name;
     private String returnValue;
     
-    public MethodCall(MethodDoc method, String name, String returnValue) {
+    public DocumentMethodAnnotation(MethodDoc method, String name, String returnValue) {
         this.method = method;
         this.name = name;
         this.returnValue = returnValue;

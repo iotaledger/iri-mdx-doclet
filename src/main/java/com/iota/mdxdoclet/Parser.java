@@ -41,12 +41,12 @@ public class Parser {
 		this.exports = new ArrayList<>();
 	}
 
-	public void renderMethod(OutputStream out, MethodDoc methodDoc, MethodCall call) throws IOException, TemplateException {
+	public void renderMethod(OutputStream out, MethodDoc methodDoc, DocumentMethodAnnotation call) throws IOException, TemplateException {
 		Writer w = new OutputStreamWriter(out);
 		render(w, methodDoc, "method.ftl", call);
 	}
 
-	private void render(Writer w, MethodDoc doc, String templateName, MethodCall api)
+	private void render(Writer w, MethodDoc doc, String templateName, DocumentMethodAnnotation api)
 			throws IOException, TemplateException {
 		Template template = configuration.getTemplate(templateName);
 		Map<String, Object> input = new HashMap<String, Object>();
@@ -77,7 +77,6 @@ public class Parser {
 		}
 		
 		
-
 		//<@java.returnTags util.parseReturnTag(subject.tags("return"), returnclass) />
 		input.put("returnParams", fields);
 		input.put("examples", examples.toArray(new Example[] {}));
@@ -88,7 +87,7 @@ public class Parser {
 		template.process(input, w);
 	}
 	
-	public ArrayList<FieldDoc> getDocumentedFields(ClassDoc doc, MethodCall api, Tag[] returnTags) {
+	public ArrayList<FieldDoc> getDocumentedFields(ClassDoc doc, DocumentMethodAnnotation api, Tag[] returnTags) {
 	    List<ReturnParam> returns = util.parseFields(doc);
 	    if (returns.isEmpty()) {
 	        //returns.add(new ReturnParam(api.getParam() ,))

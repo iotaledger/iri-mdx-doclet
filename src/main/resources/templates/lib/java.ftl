@@ -38,7 +38,7 @@ TODO: configure root url
 TODO: configure root package
 -->
 <#function url type>
-  <#return "https://github.com/iotaledger/iri/blob/dev/src/main/java/" + type.qualifiedTypeName()?replace('.','/') + ".java"/>
+  <#return util.getRepoUrl() + type.qualifiedTypeName()?replace('.','/') + ".java"/>
 </#function>
 
 

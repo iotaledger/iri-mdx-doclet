@@ -2,7 +2,7 @@ package com.iota.mdxdoclet.example;
 
 import java.util.List;
 
-import com.iota.mdxdoclet.MethodCall;
+import com.iota.mdxdoclet.DocumentMethodAnnotation;
 import com.iota.mdxdoclet.data.ReturnParam;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
@@ -15,7 +15,7 @@ public interface Export {
 	 * @param api The Related API command
 	 * @return the example code
 	 */
-	String generateExample(MethodDoc command, MethodCall api);
+	String generateExample(MethodDoc command, DocumentMethodAnnotation api);
 
 	
 	/**
@@ -24,7 +24,7 @@ public interface Export {
 	 * @param api The API command
 	 * @return the response code
 	 */
-	String generateResponse(MethodDoc command, MethodCall api);
+	String generateResponse(MethodDoc command, DocumentMethodAnnotation api);
 	
 	/**
 	 * Generates response data based on a list of methods
@@ -33,7 +33,7 @@ public interface Export {
 	 * @param fields The list of fields (only those with javadoc)
 	 * @return the response code
 	 */
-	String generateResponse(MethodDoc command, MethodCall api, ReturnParam[] fields);
+	String generateResponse(MethodDoc command, DocumentMethodAnnotation api, ReturnParam[] fields);
 	
 	/**
 	 * Generates an example error

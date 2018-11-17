@@ -2,8 +2,7 @@ package com.iota.mdxdoclet.example;
 
 import java.util.Random;
 
-import com.iota.mdxdoclet.ApiCall;
-import com.iota.mdxdoclet.MethodCall;
+import com.iota.mdxdoclet.DocumentMethodAnnotation;
 import com.iota.mdxdoclet.data.ReturnParam;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
@@ -14,7 +13,7 @@ public abstract class BaseExport implements Export {
 	protected static final String CMD = "%cmd";
 
 	@Override
-	public String generateExample(MethodDoc command, MethodCall api) {
+	public String generateExample(MethodDoc command, DocumentMethodAnnotation api) {
 		
 		String start = getPost();
 		StringBuilder generatedCommand = new StringBuilder("{\"command\": \"" + api.name() + "\"");
@@ -31,7 +30,7 @@ public abstract class BaseExport implements Export {
 	}
 	
 	@Override
-	public String generateResponse(MethodDoc command, MethodCall api) {
+	public String generateResponse(MethodDoc command, DocumentMethodAnnotation api) {
 		String start = getResponse();
 		String responseObject = "\"duration\": " + exampleInt();
 		
@@ -46,7 +45,7 @@ public abstract class BaseExport implements Export {
 	
 	
 	@Override
-	public String generateResponse(MethodDoc command, MethodCall api, ReturnParam[] fields) {
+	public String generateResponse(MethodDoc command, DocumentMethodAnnotation api, ReturnParam[] fields) {
 		String start = getResponse();
 		StringBuilder generatedCommand = new StringBuilder("");
 		
@@ -66,7 +65,7 @@ public abstract class BaseExport implements Export {
 		return "{\"error\": \"'command' parameter has not been specified\"}";
 	}
 	
-	private String generateExampleForCallAndType(MethodCall api, String argname, Type t) {
+	private String generateExampleForCallAndType(DocumentMethodAnnotation api, String argname, Type t) {
 		String type = t.typeName();
 		if (t.asParameterizedType() != null) {
 			type = t.asParameterizedType().typeArguments()[0].typeName();
@@ -96,7 +95,7 @@ public abstract class BaseExport implements Export {
 			return "100";
 		} else if (name.equals("uris")) {
 			return "udp://8.8.8.8:14265";	
-		} else if (command.equals(ApiCall.NODE_INFO)) {
+		} else if (command.equals("getNodeInfo")) {
 			return name;
 		} else if (returnType.equals("String")) {
 			return randomHash();
