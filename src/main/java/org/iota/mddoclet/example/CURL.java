@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet.example;
+package org.iota.mddoclet.example;
 
 public class CURL extends BaseExport {
 

@@ -1,9 +1,10 @@
-package com.iota.mdxdoclet.example;
+package org.iota.mddoclet.example;
 
 import java.util.List;
 
-import com.iota.mdxdoclet.DocumentMethodAnnotation;
-import com.iota.mdxdoclet.data.ReturnParam;
+import org.iota.mddoclet.DocumentMethodAnnotation;
+import org.iota.mddoclet.data.ReturnParam;
+
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 

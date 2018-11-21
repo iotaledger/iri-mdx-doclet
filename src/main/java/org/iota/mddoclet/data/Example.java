@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet.data;
+package org.iota.mddoclet.data;
 
 public class Example {
 

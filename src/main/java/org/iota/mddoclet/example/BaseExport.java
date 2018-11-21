@@ -1,9 +1,10 @@
-package com.iota.mdxdoclet.example;
+package org.iota.mddoclet.example;
 
 import java.util.Random;
 
-import com.iota.mdxdoclet.DocumentMethodAnnotation;
-import com.iota.mdxdoclet.data.ReturnParam;
+import org.iota.mddoclet.DocumentMethodAnnotation;
+import org.iota.mddoclet.data.ReturnParam;
+
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Parameter;
 import com.sun.javadoc.Type;
@@ -65,22 +66,48 @@ public abstract class BaseExport implements Export {
 		return "{\"error\": \"'command' parameter has not been specified\"}";
 	}
 	
-	private String generateExampleForCallAndType(DocumentMethodAnnotation api, String argname, Type t) {
-		String type = t.typeName();
-		if (t.asParameterizedType() != null) {
-			type = t.asParameterizedType().typeArguments()[0].typeName();
+	/**
+	 * 
+	 * @param api
+	 * @param argName
+	 * @param argType
+	 * @return
+	 */
+	protected String generateExampleForCallAndType(DocumentMethodAnnotation api, 
+                                                   String argName, 
+                                                   Type argType) {
+	    
+	    return generateExampleForCallAndType(api, argName, argType, true);
+	}
+	
+	/**
+	 * 
+	 * @param api
+	 * @param argName
+	 * @param argType
+	 * @param prependName
+	 * @return
+	 */
+	protected String generateExampleForCallAndType(DocumentMethodAnnotation api, 
+                                        	       String argName, 
+                                        	       Type argType, 
+                                        	       boolean prependName) {
+		String type = argType.typeName();
+		if (argType.asParameterizedType() != null) {
+			type = argType.asParameterizedType().typeArguments()[0].typeName();
 		}
 		
 		StringBuilder generatedCommand = new StringBuilder("");
-		generatedCommand.append("\"" + argname + "\": ");
-		if (t.dimension().equals("[]") || t.asParameterizedType() != null) { //parameterized is a list of sorts, or T
+		if (prependName)generatedCommand.append("\"" + argName + "\": ");
+		
+		if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { //parameterized is a list of sorts, or T
 			generatedCommand.append("[");
-			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
 			generatedCommand.append(", ");
-			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
 			generatedCommand.append("]");
 		} else {
-			generatedCommand.append("\"" + getExampleData(api.name(), argname, type) + "\"");
+			generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
 		}
 		return generatedCommand.toString();
 	}

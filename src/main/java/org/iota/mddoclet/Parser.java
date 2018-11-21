@@ -1,10 +1,6 @@
-package com.iota.mdxdoclet;
+package org.iota.mddoclet;
 
-import com.iota.mdxdoclet.data.Example;
-import com.iota.mdxdoclet.data.ReturnParam;
-import com.iota.mdxdoclet.example.Export;
 import com.sun.javadoc.ClassDoc;
-import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.Tag;
 
@@ -20,9 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.iota.mddoclet.data.Example;
+import org.iota.mddoclet.data.ReturnParam;
+import org.iota.mddoclet.example.Export;
+
 /**
  * The main parser class. It scans the given Doclet document root and creates
- * the MDX files.
+ * the MD files.
  *
  * The work is done in Freemarker templates.
  *
@@ -43,29 +43,34 @@ public class Parser {
 
 	public void renderMethod(OutputStream out, MethodDoc methodDoc, DocumentMethodAnnotation call) throws IOException, TemplateException {
 		Writer w = new OutputStreamWriter(out);
-		render(w, methodDoc, "method.ftl", call);
+		render(w, methodDoc, call);
 	}
 
-	private void render(Writer w, MethodDoc doc, String templateName, DocumentMethodAnnotation api)
-			throws IOException, TemplateException {
-		Template template = configuration.getTemplate(templateName);
+	private void render(Writer w, MethodDoc doc, DocumentMethodAnnotation api) throws IOException, TemplateException {
+		Template template = configuration.getTemplate(api.getTemplate().getFileName());
 		Map<String, Object> input = new HashMap<String, Object>();
 
 		// Check for return class
 		Tag[] returnTags = doc.tags("return");
 		ClassDoc c = util.getReturnClass(returnTags);
+		
 		if (c != null) {
 			input.put("returnclass", c);
+		} else {
+		    if (!doc.returnType().isPrimitive()) {
+		        input.put("returnclass", doc.returnType().asClassDoc());
+		    }
 		}
 		
 		//Only generate fields once, if c == null, returns empty list
-		ReturnParam[] fields = util.parseReturnTag(returnTags, c, doc, api);
+		ReturnParam[] returnFields = util.parseReturnTag(returnTags, c, doc, api);
+		ReturnParam[] parameters = util.parseParameters(doc);
 
 		// Make the examples
 		List<Example> examples = new java.util.ArrayList<>();
 		for (Export x : exports) {
 			//Response based on return class or default + return var, or default in case of void
-			String response = x.generateResponse(doc, api, fields);
+			String response = x.generateResponse(doc, api, returnFields);
 			
 			examples.add(new Example(
 				x.generateExample(doc, api), 
@@ -76,39 +81,14 @@ public class Parser {
 			);
 		}
 		
-		
-		//<@java.returnTags util.parseReturnTag(subject.tags("return"), returnclass) />
-		input.put("returnParams", fields);
+		input.put("parameters", parameters);
+		input.put("returnParams", returnFields);
 		input.put("examples", examples.toArray(new Example[] {}));
 		input.put("lineNumber", doc.position().line() + "");
 		input.put("subject", doc);
 		input.put("util", util);
 		input.put("name", api.name());
 		template.process(input, w);
-	}
-	
-	public ArrayList<FieldDoc> getDocumentedFields(ClassDoc doc, DocumentMethodAnnotation api, Tag[] returnTags) {
-	    List<ReturnParam> returns = util.parseFields(doc);
-	    if (returns.isEmpty()) {
-	        //returns.add(new ReturnParam(api.getParam() ,))
-	    }
-		return getDocumentedFields(doc, new ArrayList<FieldDoc>());
-	}
-
-	private ArrayList<FieldDoc> getDocumentedFields(ClassDoc c, ArrayList<FieldDoc> docs) {
-		if (c == null)
-			return docs;
-		
-		if (c.superclass() != null) {
-		    getDocumentedFields(c.superclass(), docs);
-		}
-
-		for (FieldDoc field : c.fields(false)) {
-		    if (field.inlineTags().length > 0) {
-				docs.add(field);
-			}
-		}
-		return docs;
 	}
 
 	public void addExport(Export export) {

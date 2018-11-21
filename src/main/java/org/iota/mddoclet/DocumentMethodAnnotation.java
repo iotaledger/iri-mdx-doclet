@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet;
+package org.iota.mddoclet;
 
 import com.sun.javadoc.MethodDoc;
 
@@ -14,10 +14,23 @@ public class DocumentMethodAnnotation {
     private String name;
     private String returnValue;
     
-    public DocumentMethodAnnotation(MethodDoc method, String name, String returnValue) {
+    private Template template;
+    
+    public DocumentMethodAnnotation(MethodDoc method, String name, String returnValue, Template template) {
         this.method = method;
         this.name = name;
         this.returnValue = returnValue;
+        
+        this.template = template;
+    }
+    
+    /**
+     * The template this specific method should use.
+     * If this is <tt>null</tt>, this will use the template defined by the \"-template\" argument.
+     * @return The template name
+     */
+    public Template getTemplate() {
+        return template;
     }
     
     /**

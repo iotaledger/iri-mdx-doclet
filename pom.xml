@@ -3,13 +3,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.iota</groupId>
-	<artifactId>mdxdoclet</artifactId>
+	<groupId>org.iota</groupId>
+	<artifactId>mddoclet</artifactId>
 	<version>0.2</version>
 	<packaging>jar</packaging>
 
-	<name>mdxdoclet</name>
-	<description>Doclet for generating MDX documenttation from javadoc</description>
+	<name>mddoclet</name>
+	<description>Doclet for generating MD documentation from javadoc</description>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -24,6 +24,19 @@
 			<version>3.8.1</version>
 			<scope>test</scope>
 		</dependency>
+		
+		<dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+		
 		<dependency>
 			<scope>system</scope>
 			<groupId>com.sun</groupId>
@@ -32,7 +45,7 @@
 			<systemPath>${toolsjar}</systemPath>
 		</dependency>
 
-		<!-- Template generator for the MDX files -->
+		<!-- Template generator for the MD files -->
 		<dependency>
 			<groupId>org.freemarker</groupId>
 			<artifactId>freemarker</artifactId>
@@ -58,7 +71,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
-										<Main-Class>com.iota.mdxdoclet.MDXDoclet</Main-Class>
+										<Main-Class>org.iota.mdxdoclet.MDDoclet</Main-Class>
 									</manifestEntries>
 								</transformer>
 							</transformers>

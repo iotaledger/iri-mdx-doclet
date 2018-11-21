@@ -1,15 +1,18 @@
-package com.iota.mdxdoclet;
+package org.iota.mddoclet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.iota.mdxdoclet.data.ReturnParam;
+import org.iota.mddoclet.data.ReturnParam;
+
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.ExecutableMemberDoc;
 import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
+import com.sun.javadoc.Parameter;
 import com.sun.javadoc.ProgramElementDoc;
 import com.sun.javadoc.SeeTag;
 import com.sun.javadoc.Tag;
@@ -63,7 +66,7 @@ public final class Util {
 	                    return new ReturnParam[] {};
 	                }
 
-	                ReturnParam[] finalTags =  parseFields(doc).toArray(new ReturnParam[] {});
+	                ReturnParam[] finalTags =  parseFields(doc);
 	                return finalTags;
 			    }
 			}
@@ -75,11 +78,19 @@ public final class Util {
                             method.returnType())
                         };
 			} else {
-			    int ret = tag.text().indexOf(" ");
+			    int ret = tag.text().indexOf(": ");
+			    String name = "";
+			    if (ret > -1) name = tag.text().substring(0,  ret);
+			    
+			    String text;
+			    if (ret > -1) text = tag.text().substring(ret);
+			    else text = tag.text();
+			    
 	            return new ReturnParam[] {
 	                    new ReturnParam(
-	                        tag.text().substring(0,  ret), 
-	                        processDescriptionAsMarkdown(tag.text().substring(ret))) 
+	                        name, 
+	                        processDescriptionAsMarkdown(text), 
+	                        method.returnType())
 	                    };
 			}
 			
@@ -87,9 +98,29 @@ public final class Util {
 
 		return new ReturnParam[] {};
 	}
+	
+	public ReturnParam[] parseParameters(MethodDoc doc) {
+        List<ReturnParam> params = new ArrayList<>();
+        
+        for (int i=0; i<doc.parameters().length; i++) {
+            String description = "missing description";
+            if (doc.paramTags().length > i) {
+                description = parseTag(doc.paramTags()[i]);
+            }
+            
+            Parameter param = doc.parameters()[i];
+            
+            ReturnParam rp = new ReturnParam(param.name(),
+                                             description,
+                                             param.type());
+            params.add(rp);
+        }
+        
+        return params.toArray(new ReturnParam[params.size()]);
+	}
 
-	public List<ReturnParam> parseFields(ClassDoc doc) {
-		return parseFields(doc, new ArrayList<ReturnParam>());
+	public ReturnParam[] parseFields(ClassDoc doc) {
+		return parseFields(doc, new ArrayList<>()).toArray(new ReturnParam[] {});
 	}
 
 	private List<ReturnParam> parseFields(ClassDoc doc, List<ReturnParam> tags) {
@@ -115,10 +146,38 @@ public final class Util {
 	    
 	    //Parse inline tags, also called the regular comments
 	    for (Tag inlineTag : field.inlineTags()) {
-	        if (inlineTag.name().equals("@link")) {
-	            SeeTag seeTag = (SeeTag) inlineTag;
-	            if (seeTag.referencedMember() != null) {
-	                if (repoUrl != null) {
+	        builder.append(parseTag(inlineTag));
+	    }
+	    
+	    // Parse the special  tags, @see, @return, etc
+	    for (Tag tag : field.tags()) {
+	        builder.append(parseTag(tag));
+	    }
+	    return processDescriptionAsMarkdown(builder.toString());
+    }
+	
+	public String parseTag(Tag tag) {
+	    StringBuilder builder = new StringBuilder();
+	    if (tag instanceof SeeTag) {
+            SeeTag seeTag = (SeeTag) tag;
+            
+            //We reference a class, parse its field like we do with a return type
+            if (tag.name().equals("@see")) {
+                ReturnParam[] seeFields = parseFields(seeTag.referencedClass());
+                for (ReturnParam param : seeFields) {
+                    // Keep this html default, markdown parse happens later, optionally
+                    builder.append("<br/>");
+                    builder.append("<b>");
+                    builder.append(param.getName());
+                    builder.append("</b>");
+                    if (!param.getText().equals("")) {
+                        builder.append(": ");
+                        builder.append(param.getText());
+                    }
+                }
+            } else if (tag.name().equals("link")) {
+                if (seeTag.referencedMember() != null) {
+                    if (repoUrl != null) {
                         builder.append("[" 
                             + seeTag.referencedMemberName() 
                             + "](" 
@@ -127,10 +186,10 @@ public final class Util {
                             + ".java#L"
                             + seeTag.referencedMember().position().line()
                             + ")");
-    	            } else {
+                    } else {
                         builder.append(seeTag.referencedMemberName() );
                     }
-	            } else if (seeTag.referencedClass() != null) {
+                } else if (seeTag.referencedClass() != null) {
                     if (repoUrl != null) {
                         builder.append("[" 
                             + seeTag.referencedClass().name()
@@ -141,38 +200,15 @@ public final class Util {
                     } else {
                         builder.append(seeTag.referencedClass().qualifiedName());
                     }
-	            } else {
-	                // ??
-	            }
-	        } else {
-	            builder.append(inlineTag.text());
-	        }
-	    }
-	    
-	    // Parse the special  tags, @see, @return, etc
-	    for (Tag tag : field.tags()) {
-	        if (tag instanceof SeeTag) {
-	            SeeTag seeTag = (SeeTag) tag;
-	            
-	            //We reference a class, parse its field like we do with a return type
-	            if (tag.name().equals("@see")) {
-	                List<ReturnParam> seeFields = parseFields(seeTag.referencedClass());
-	                for (ReturnParam param : seeFields) {
-	                    // Keep this html default, markdown parse happens later, optionally
-	                    builder.append("<br/>");
-	                    builder.append("<b>");
-	                    builder.append(param.getName());
-	                    builder.append("</b>");
-	                    if (!param.getText().equals("")) {
-	                        builder.append(": ");
-	                        builder.append(param.getText());
-	                    }
-	                }
-	            }
-	        }
-	    }
-	    return processDescriptionAsMarkdown(builder.toString());
-    }
+                } else {
+                    // ??
+                }
+            }
+        } else if (tag.name().equals("Text")){
+            return tag.text();
+        }
+	    return builder.toString();
+	}
 
     public String dimension(Type type) {
 		try {
@@ -189,6 +225,9 @@ public final class Util {
 
 	public String processDescriptionAsMarkdown(String text) {
 		try {
+		    // Filter away any unwanted newlines.
+		    text = text.replaceAll("\\r\\n|\\r|\\n", " ");
+		    
 		    // Bold
 		    text = text.replaceAll("<b>", "**").replaceAll("</b>", "**");
 		    

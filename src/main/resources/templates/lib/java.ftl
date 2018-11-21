@@ -3,7 +3,7 @@
   <#assign  ret="" />
   <#if executableMemberDoc.annotations??>
     <#list executableMemberDoc.annotations() as annotationDesc>
-      <#if annotationDesc.annotationType() != "com.iota.mdxdoclet.Document">
+      <#if annotationDesc.annotationType() != "org.iota.mddoclet.Document">
         <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
       </#if>
     </#list>
@@ -11,11 +11,23 @@
   <#return ret>
 </#function>
 
+<#function paramRequired paramType>
+<#if paramType.typeName() == "Optional">
+    <#return "Optional">
+<#else>
+    <#return "Required">
+</#if>
+</#function>
+
 <#function link type>
   <#if type.isPrimitive()>
     <#return type.typeName()>
   <#else>
-    <#if type.qualifiedTypeName()?starts_with("com.iota.") >
+    <#if type.qualifiedTypeName()?starts_with("com.iota.") 
+    || type.qualifiedTypeName()?starts_with("org.iota.")
+    || type.qualifiedTypeName()?starts_with("jota.")
+    || util.getRepoUrl()?contains(type.qualifiedTypeName()?replace('.','/'))>
+    
       <#return "[" + type.typeName() + "](" + url(type) + ")">
     <#else>
       <#return type.qualifiedTypeName()>

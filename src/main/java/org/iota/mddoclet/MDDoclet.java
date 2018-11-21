@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet;
+package org.iota.mddoclet;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -8,9 +8,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import com.iota.mdxdoclet.example.CURL;
-import com.iota.mdxdoclet.example.NodeJS;
-import com.iota.mdxdoclet.example.Python;
+import org.iota.mddoclet.example.CURL;
+import org.iota.mddoclet.example.Java;
+import org.iota.mddoclet.example.NodeJS;
+import org.iota.mddoclet.example.Python;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.javadoc.AnnotationDesc;
 import com.sun.javadoc.AnnotationDesc.ElementValuePair;
 import com.sun.javadoc.ClassDoc;
@@ -25,7 +29,11 @@ import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import freemarker.template.Version;
 
-public class MDXDoclet extends Doclet  {
+public class MDDoclet extends Doclet  {
+    
+    private static final Logger log = LoggerFactory.getLogger(MDDoclet.class);
+    {
+    }
 	
 	private static String version = "Unknown";
 
@@ -35,10 +43,14 @@ public class MDXDoclet extends Doclet  {
 	private static List<String> classesList = null;
 	
 	private static String repoUrl = null;
+
+    private static Template template;
+
+    private static String extension = ".md";
 	
 	private Parser parser;
 	
-	public MDXDoclet(RootDoc root) {
+	public MDDoclet(RootDoc root) {
 		
 		Configuration configuration = new Configuration(new Version(2, 3, 26));
 	    // Where do we load the templates from:
@@ -60,15 +72,15 @@ public class MDXDoclet extends Doclet  {
 	    parser.addExport(new Python());
 	    parser.addExport(new NodeJS());
 	    parser.addExport(new CURL());
+	    parser.addExport(new Java());
 	}
 
     private void generate(ClassDoc apiDoc) {
         for (MethodDoc m : apiDoc.methods(false)) {
             DocumentMethodAnnotation call = getAnnotationData(m, Document.class.getSimpleName());
             if (call != null) {
-                System.out.println("Generating " + call);
-                
-                File classFile = new File(call.name() + ".md");
+                log.info("Generating " + call);
+                File classFile = new File(call.name() + extension);
                 try  (
                     FileOutputStream fileOutputStream = new FileOutputStream(classFile);
                     BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)
@@ -77,7 +89,7 @@ public class MDXDoclet extends Doclet  {
                     parser.renderMethod(bufferedOutputStream, m, call);
 
                 } catch (TemplateException | IOException e) {
-                    System.err.println("Processing method " + m.name() + " failed");
+                    log.error("Processing method " + m.name() + " failed");
                     e.printStackTrace();
                 } finally {
                     
@@ -87,18 +99,30 @@ public class MDXDoclet extends Doclet  {
 	}
     
     /**
-     * Reads 
-     * @param m
+     * Reads annotations from a class.
+     * If no template name is specified, the default template is used.
+     * 
+     * @param method
      * @param annotationName
-     * @return
+     * @return DocumentMethodAnnotation
      */
-    private DocumentMethodAnnotation getAnnotationData(MethodDoc m, String annotationName) {
-        for (AnnotationDesc anon : m.annotations()){
+    private DocumentMethodAnnotation getAnnotationData(MethodDoc method, String annotationName) {
+        for (AnnotationDesc anon : method.annotations()){
             if (anon.annotationType().name().equals(annotationName)) {
                 ElementValuePair[] values = anon.elementValues();
-                return new DocumentMethodAnnotation(m, 
-                                      valueFromPair(values, "name"), 
-                                      valueFromPair(values, "returnParam"));
+                String templateName = valueFromPair(values, "template");
+                String name = valueFromPair(values, "name");
+                
+                if (null == name) {
+                    name = method.name();
+                }
+                
+                Template template = templateName != null ? Template.getEnum(templateName) : MDDoclet.template;
+                
+                return new DocumentMethodAnnotation(method, 
+                                      name, 
+                                      valueFromPair(values, "returnParam"),
+                                      template);
             }
         }
         return null;
@@ -123,8 +147,14 @@ public class MDXDoclet extends Doclet  {
      */
 
     public static boolean start(RootDoc root) {
-		System.out.println("Generating MDX docs for IRI V" + version);
-		MDXDoclet doclet = new MDXDoclet(root);
+        log.info("Generating MDX docs for IRI V" + version);
+		if (null == template) {
+		    log.info("Please provide a default template name using \"-template [name]\".");
+		    log.info("Options are: " + Arrays.toString(Template.values()));
+		    return false;
+		}
+		
+		MDDoclet doclet = new MDDoclet(root);
 		
 		for (ClassDoc c : root.classes()) {
         	if (classesList == null || classesList.isEmpty() || classesList.contains(c.name())) {
@@ -137,7 +167,7 @@ public class MDXDoclet extends Doclet  {
         	}
         }
         
-        System.out.println("Documentation generated");
+		log.info("Documentation generated");
         return true;
     }
 
@@ -153,6 +183,10 @@ public class MDXDoclet extends Doclet  {
         } else if (option.equals("-classeslist")) {
             return 2;
         } else if (option.equals("-repolink")) {
+            return 2;
+        } else if (option.equals("-template")) {
+            return 2;
+        } else if (option.equals("-extension")) {
             return 2;
         }
 		return Doclet.optionLength(option);
@@ -173,6 +207,21 @@ public class MDXDoclet extends Doclet  {
                 classesList = getList(args[i][1]);
             } else if (args[i][0].equals("-repolink")) {
                 repoUrl = args[i][1];
+            } else if (args[i][0].equals("-template")) {
+                try {
+                    System.out.println(args[i][1]);
+                    template = Template.getEnum(args[i][1]);
+                } catch (IllegalArgumentException e) {
+                    log.error(e.getLocalizedMessage());
+                    log.info("Please provide a valid template name.");
+                    log.info("Options are: ", Arrays.toString(Template.values()));
+                }
+            } else if (args[i][0].equals("-extension")) {
+                String extension = args[i][1];
+                if (extension.charAt(0) != '.') {
+                    extension = "." + extension;
+                }
+                MDDoclet.extension  = extension;
             }
 		}
 		
