@@ -7,7 +7,7 @@
 </#if>
 ${java.annotations_for(subject)} ${java.link(subject.returnType())} ${subject.name()}(<@java.parameterList subject.parameters() />)
 
-${ util.parseFieldText(subject)}
+${ util.parseCommentText(subject)}
 > **Important note:** This API is currently in Beta and is subject to change. Use of these APIs in production applications is not supported.
 
 <#if (parameters?size > 0)>
@@ -15,13 +15,13 @@ ${ util.parseFieldText(subject)}
 | Parameter       | Type | Required or Optional | Description |
 |:---------------|:--------|:--------| :--------|
 <#list parameters as param>
-| ${param.getName()} | ${param.getReturnType()} | ${java.paramRequired(param.getReturnType())} | ${param.getText()} |
+| ${param.getName()} | ${java.link(param.getReturnType())} | ${java.paramRequired(param.getReturnType())} | ${param.getText()} |
 </#list>
 </#if>
     
 <#if returnParams??>
 ## Output
-|Return type | Description |
+| Return type | Description |
 |--|--|
 <#list returnParams as field>
 | ${java.link(field.getReturnType())} ${field.getName()} | ${field.getText()} |

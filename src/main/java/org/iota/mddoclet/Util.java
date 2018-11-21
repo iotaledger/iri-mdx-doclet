@@ -140,6 +140,16 @@ public final class Util {
 		}
 		return tags;
 	}
+	
+	public String parseCommentText(Doc field) {
+        StringBuilder builder = new StringBuilder();
+        
+        //Parse inline tags, also called the regular comments
+        for (Tag inlineTag : field.inlineTags()) {
+            builder.append(parseTag(inlineTag));
+        }
+        return processDescriptionAsMarkdown(builder.toString());
+	}
 
 	public String parseFieldText(Doc field) {
 	    StringBuilder builder = new StringBuilder();
@@ -158,58 +168,61 @@ public final class Util {
 	
 	public String parseTag(Tag tag) {
 	    StringBuilder builder = new StringBuilder();
-	    if (tag instanceof SeeTag) {
-            SeeTag seeTag = (SeeTag) tag;
-            
-            //We reference a class, parse its field like we do with a return type
-            if (tag.name().equals("@see")) {
-                ReturnParam[] seeFields = parseFields(seeTag.referencedClass());
-                for (ReturnParam param : seeFields) {
-                    // Keep this html default, markdown parse happens later, optionally
-                    builder.append("<br/>");
-                    builder.append("<b>");
-                    builder.append(param.getName());
-                    builder.append("</b>");
-                    if (!param.getText().equals("")) {
-                        builder.append(": ");
-                        builder.append(param.getText());
+	    
+	    for (Tag inlineTag : tag.inlineTags()) {
+	        if (inlineTag instanceof SeeTag) {
+                SeeTag seeTag = (SeeTag) inlineTag;
+                
+                //We reference a class, parse its field like we do with a return type
+                if (inlineTag.name().equals("@see")) {
+                    ReturnParam[] seeFields = parseFields(seeTag.referencedClass());
+                    for (ReturnParam param : seeFields) {
+                        // Keep this html default, markdown parse happens later, optionally
+                        builder.append("<br/>");
+                        builder.append("<b>");
+                        builder.append(param.getName());
+                        builder.append("</b>");
+                        if (!param.getText().equals("")) {
+                            builder.append(": ");
+                            builder.append(param.getText());
+                        }
+                    }
+                } else if (inlineTag.name().equals("@link")) {
+                    if (seeTag.referencedMember() != null) {
+                        if (repoUrl != null) {
+                            builder.append("[" 
+                                + seeTag.referencedMemberName() 
+                                + "](" 
+                                + repoUrl 
+                                + seeTag.referencedMember().containingClass().qualifiedName().replace('.','/')
+                                + ".java#L"
+                                + seeTag.referencedMember().position().line()
+                                + ")");
+                        } else {
+                            builder.append(seeTag.referencedMemberName() );
+                        }
+                    } else if (seeTag.referencedClass() != null) {
+                        if (repoUrl != null) {
+                            builder.append("[" 
+                                + seeTag.referencedClass().name()
+                                + "](" 
+                                + repoUrl 
+                                + seeTag.referencedClass().qualifiedName().replace('.','/')
+                                + ".java)");
+                        } else {
+                            builder.append(seeTag.referencedClass().qualifiedName());
+                        }
+                    } else {
+                        // ??
                     }
                 }
-            } else if (tag.name().equals("link")) {
-                if (seeTag.referencedMember() != null) {
-                    if (repoUrl != null) {
-                        builder.append("[" 
-                            + seeTag.referencedMemberName() 
-                            + "](" 
-                            + repoUrl 
-                            + seeTag.referencedMember().containingClass().qualifiedName().replace('.','/')
-                            + ".java#L"
-                            + seeTag.referencedMember().position().line()
-                            + ")");
-                    } else {
-                        builder.append(seeTag.referencedMemberName() );
-                    }
-                } else if (seeTag.referencedClass() != null) {
-                    if (repoUrl != null) {
-                        builder.append("[" 
-                            + seeTag.referencedClass().name()
-                            + "](" 
-                            + repoUrl 
-                            + seeTag.referencedClass().qualifiedName().replace('.','/')
-                            + ".java)");
-                    } else {
-                        builder.append(seeTag.referencedClass().qualifiedName());
-                    }
-                } else {
-                    // ??
-                }
+    	    } else if (inlineTag instanceof ParamTag) {
+    	        ParamTag paramTag = (ParamTag) inlineTag;
+    	        builder.append( paramTag.parameterComment());
+            } else if (inlineTag.name().equals("Text")){
+                builder.append(inlineTag.text());
             }
-	    } else if (tag instanceof ParamTag) {
-	        ParamTag paramTag = (ParamTag) tag;
-	        return paramTag.parameterComment();
-        } else if (tag.name().equals("Text")){
-            return tag.text();
-        }
+	    }
 	    return builder.toString();
 	}
 
@@ -294,7 +307,7 @@ public final class Util {
             
             StringBuilder sb = new StringBuilder(newText.substring(0, index));
             sb.append(toReplace);
-            sb.append(newText.substring(index + 6, closingBracket));
+            sb.append(newText.substring(index + name.length(), closingBracket));
             sb.append(toReplaceEnd != null ? toReplaceEnd : toReplace);
             sb.append(newText.substring(closingBracket + 1));
             

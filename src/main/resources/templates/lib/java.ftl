@@ -30,7 +30,16 @@
     
       <#return "[" + type.typeName() + "](" + url(type) + ")">
     <#else>
-      <#return type.qualifiedTypeName()>
+      <#if type.asParameterizedType()??>
+        <#assign inner = "">
+        <#list type.asParameterizedType().typeArguments() as innerTypes>
+          <#assign inner += "" + link(innerTypes)>
+        </#list>
+      
+        <#return type.typeName() + "<" + inner + ">">
+      <#else>
+        <#return type.typeName()>
+      </#if>
     </#if> </#if>
 </#function>
 
