@@ -105,7 +105,7 @@ public final class Util {
         for (int i=0; i<doc.parameters().length; i++) {
             String description = "missing description";
             if (doc.paramTags().length > i) {
-                description = parseTag(doc.paramTags()[i]);
+                description = processDescriptionAsMarkdown(parseTag(doc.paramTags()[i]));
             }
             
             Parameter param = doc.parameters()[i];
@@ -204,6 +204,9 @@ public final class Util {
                     // ??
                 }
             }
+	    } else if (tag instanceof ParamTag) {
+	        ParamTag paramTag = (ParamTag) tag;
+	        return paramTag.parameterComment();
         } else if (tag.name().equals("Text")){
             return tag.text();
         }
