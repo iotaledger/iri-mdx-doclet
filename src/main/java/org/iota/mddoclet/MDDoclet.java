@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.iota.mddoclet.example.CURL;
+import org.iota.mddoclet.example.HTTP;
 import org.iota.mddoclet.example.Java;
 import org.iota.mddoclet.example.NodeJS;
 import org.iota.mddoclet.example.Python;
@@ -73,6 +74,7 @@ public class MDDoclet extends Doclet  {
 	    parser.addExport(new NodeJS());
 	    parser.addExport(new CURL());
 	    parser.addExport(new Java());
+	    parser.addExport(new HTTP());
 	}
 
     private void generate(ClassDoc apiDoc) {
@@ -147,7 +149,7 @@ public class MDDoclet extends Doclet  {
      */
 
     public static boolean start(RootDoc root) {
-        log.info("Generating MDX docs for IRI V" + version);
+        log.info("Generating MDX docs for " + template.getTemplateName() + " V" + version);
 		if (null == template) {
 		    log.info("Please provide a default template name using \"-template [name]\".");
 		    log.info("Options are: " + Arrays.toString(Template.values()));
@@ -209,7 +211,6 @@ public class MDDoclet extends Doclet  {
                 repoUrl = args[i][1];
             } else if (args[i][0].equals("-template")) {
                 try {
-                    System.out.println(args[i][1]);
                     template = Template.getEnum(args[i][1]);
                 } catch (IllegalArgumentException e) {
                     log.error(e.getLocalizedMessage());

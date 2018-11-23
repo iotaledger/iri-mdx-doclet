@@ -12,29 +12,39 @@ import com.sun.javadoc.Type;
 public abstract class BaseExport implements Export {
 
 	protected static final String CMD = "%cmd";
-
+	protected static final String TYPE = "%response";
+	protected static final String COMMAND_NAME = "%command";
+	protected static final String PARAMETERS = "%parameters";
+	protected static final String EXAMPLE = "%example";
+	
+	protected String requestDelim, responseDelim;
+	protected String requestFormat, responseFormat;
+	
 	@Override
 	public String generateExample(MethodDoc command, DocumentMethodAnnotation api) {
+		String post = getPost();
 		
-		String start = getPost();
-		StringBuilder generatedCommand = new StringBuilder("{\"command\": \"" + api.name() + "\"");
-		
+		StringBuilder generatedParams = new StringBuilder();
+		boolean first = true;
 		for (Parameter p : command.parameters()){
 			String name = p.name();
 			
-			generatedCommand.append(", ");
-			generatedCommand.append(generateExampleForCallAndType(api, name, p.type()));
+			if (!first) generatedParams.append(getParamDelim());
+            else first = false;
+			
+			generatedParams.append(generateExampleForCallAndType(api, name, p.type()));
 		}
-		generatedCommand.append("}");
 		
-		return start.replace(CMD, generatedCommand.toString());
+		post = post.replace(COMMAND_NAME, api.name());
+		post = post.replace(PARAMETERS, generatedParams.toString());
+		post = post.replace(TYPE, command.returnType().simpleTypeName());
+		return post;
 	}
 	
 	@Override
 	public String generateResponse(MethodDoc command, DocumentMethodAnnotation api) {
 		String start = getResponse();
 		String responseObject = "\"duration\": " + exampleInt();
-		
 		if (!command.returnType().typeName().equals("void") && api.hasParam()) {
 			
 			//We assume its just returning an array of trytes, which the API calls without Response do
@@ -71,34 +81,20 @@ public abstract class BaseExport implements Export {
 	 * @param api
 	 * @param argName
 	 * @param argType
-	 * @return
-	 */
-	protected String generateExampleForCallAndType(DocumentMethodAnnotation api, 
-                                                   String argName, 
-                                                   Type argType) {
-	    
-	    return generateExampleForCallAndType(api, argName, argType, true);
-	}
-	
-	/**
-	 * 
-	 * @param api
-	 * @param argName
-	 * @param argType
 	 * @param prependName
 	 * @return
 	 */
 	protected String generateExampleForCallAndType(DocumentMethodAnnotation api, 
                                         	       String argName, 
-                                        	       Type argType, 
-                                        	       boolean prependName) {
+                                        	       Type argType) {
+	    String example = exampleParamTemplate();
+	    
 		String type = argType.typeName();
 		if (argType.asParameterizedType() != null) {
 			type = argType.asParameterizedType().typeArguments()[0].typeName();
 		}
 		
 		StringBuilder generatedCommand = new StringBuilder("");
-		if (prependName)generatedCommand.append("\"" + argName + "\": ");
 		
 		if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { //parameterized is a list of sorts, or T
 			generatedCommand.append("[");
@@ -109,7 +105,11 @@ public abstract class BaseExport implements Export {
 		} else {
 			generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
 		}
-		return generatedCommand.toString();
+		
+		example = example.replace(EXAMPLE, generatedCommand.toString());
+		example = example.replace(COMMAND_NAME, argName);
+		example = example.replace(TYPE, type);
+		return example;
 	}
 	
 	private String getExampleData(String command, String name, String returnType) {
@@ -134,6 +134,7 @@ public abstract class BaseExport implements Export {
 			return "true";
 		} else if (returnType.equals("Neighbor") || returnType.equals("GetNeighborsResponse.Neighbor")) {
 			//TODO auto generate this
+		    //TODO Solution if we dont want JSON response
 			return  "{ \n" +
 				"\"address\": \"/8.8.8.8:14265\", \n" +
 	            "\"numberOfAllTransactions\": " + exampleInt() + ", \n" +
@@ -142,7 +143,7 @@ public abstract class BaseExport implements Export {
 	        "}";
 		}
 		
-		return "missing_data";
+		return name;
 	}
 
 	protected abstract String getPost();
@@ -150,6 +151,14 @@ public abstract class BaseExport implements Export {
 	protected String getResponse() {
 		//Normally empty, could be filled with just duration, 
 		return "{" + CMD + "}";
+	}
+	
+	protected String getParamDelim() {
+	    return ", ";
+	}
+	
+	protected String exampleParamTemplate() {
+	    return "\"" + COMMAND_NAME + "\": " + EXAMPLE;
 	}
 	
 	private String randomHash() {

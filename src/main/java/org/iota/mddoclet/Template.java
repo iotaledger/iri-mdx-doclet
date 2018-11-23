@@ -5,7 +5,7 @@ package org.iota.mddoclet;
  *
  */
 public enum Template {
-    IRI("iri", "method.ftl"),
+    IRI("iri", "iri-template.ftl"),
     IOTA_JAVA("iota-java", "library-template.ftl");
     
     private String templateName;

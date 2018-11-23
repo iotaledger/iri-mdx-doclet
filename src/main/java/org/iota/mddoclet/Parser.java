@@ -67,23 +67,26 @@ public class Parser {
 		ReturnParam[] parameters = util.parseParameters(doc);
 
 		// Make the examples
-		List<Example> examples = new java.util.ArrayList<>();
-		for (Export x : exports) {
+		Example[] examples = new Example[exports.size()];
+		for (int i = 0; i < exports.size(); i++) {
+            Export x = exports.get(i);
+            
 			//Response based on return class or default + return var, or default in case of void
 			String response = x.generateResponse(doc, api, returnFields);
 			
-			examples.add(new Example(
+			examples[i] = new Example(
 				x.generateExample(doc, api), 
 				response,
 				x.generateError(), 
 				x.getName(),
-				x.getLanguage())
+				x.getLanguage()
 			);
+			
 		}
 		
 		input.put("parameters", parameters);
 		input.put("returnParams", returnFields);
-		input.put("examples", examples.toArray(new Example[] {}));
+		input.put("examples", examples);
 		input.put("lineNumber", doc.position().line() + "");
 		input.put("subject", doc);
 		input.put("util", util);

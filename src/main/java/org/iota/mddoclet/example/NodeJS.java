@@ -1,12 +1,14 @@
 package org.iota.mddoclet.example;
 
 public class NodeJS extends BaseExport {
-
 	@Override
 	protected String getPost() {
 		return "var request = require('request');\n" + 
 				"\n" + 
-				"var command = " + BaseExport.CMD + "\n" + 
+				"var command = {\n" +
+				    "\"command\": \"" + BaseExport.COMMAND_NAME + "\", \n" + 
+				    BaseExport.PARAMETERS + 
+				"};\n" +
 				"\n" + 
 				"var options = {\n" + 
 				"  url: 'http://localhost:14265',\n" + 
@@ -24,6 +26,11 @@ public class NodeJS extends BaseExport {
 				"    console.log(data);\n" + 
 				"  }\n" + 
 				"});";
+	}
+	
+	@Override
+	protected String getParamDelim() {
+	    return ", \n";
 	}
 
 	@Override
