@@ -149,12 +149,13 @@ public class MDDoclet extends Doclet  {
      */
 
     public static boolean start(RootDoc root) {
-        log.info("Generating MDX docs for " + template.getTemplateName() + " V" + version);
 		if (null == template) {
 		    log.info("Please provide a default template name using \"-template [name]\".");
 		    log.info("Options are: " + Arrays.toString(Template.values()));
 		    return false;
 		}
+		
+		log.info("Generating ." + extension.toUpperCase() +" docs for " + template.getTemplateName() + " V" + version);
 		
 		MDDoclet doclet = new MDDoclet(root);
 		

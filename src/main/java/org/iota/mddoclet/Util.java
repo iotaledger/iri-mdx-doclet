@@ -1,7 +1,6 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.iota.mddoclet.data.ReturnParam;
@@ -131,7 +130,7 @@ public final class Util {
 		}
 
 		for (FieldDoc field : doc.fields(false)) {
-			if (field.inlineTags().length > 0) {
+			if (field.inlineTags().length > 0 || field.tags().length > 0) {
 				ReturnParam rp = new ReturnParam(field.name(),
 				                                 parseFieldText(field),
 				                                 field.type());
@@ -169,12 +168,17 @@ public final class Util {
 	public String parseTag(Tag tag) {
 	    StringBuilder builder = new StringBuilder();
 	    
-	    for (Tag inlineTag : tag.inlineTags()) {
-	        if (inlineTag instanceof SeeTag) {
-                SeeTag seeTag = (SeeTag) inlineTag;
+	    if (tag.inlineTags().length > 1) {
+	        for (Tag inlineTag : tag.inlineTags()) {
+	            builder.append(parseTag(inlineTag));
+	        }
+	    } else {
+	        if (tag instanceof SeeTag) {
+	            SeeTag seeTag = (SeeTag) tag;
+                
                 
                 //We reference a class, parse its field like we do with a return type
-                if (inlineTag.name().equals("@see")) {
+                if (seeTag.name().equals("@see")) {
                     ReturnParam[] seeFields = parseFields(seeTag.referencedClass());
                     for (ReturnParam param : seeFields) {
                         // Keep this html default, markdown parse happens later, optionally
@@ -187,7 +191,7 @@ public final class Util {
                             builder.append(param.getText());
                         }
                     }
-                } else if (inlineTag.name().equals("@link")) {
+                } else if (seeTag.name().equals("@link")) {
                     if (seeTag.referencedMember() != null) {
                         if (repoUrl != null) {
                             builder.append("[" 
@@ -216,11 +220,11 @@ public final class Util {
                         // ??
                     }
                 }
-    	    } else if (inlineTag instanceof ParamTag) {
-    	        ParamTag paramTag = (ParamTag) inlineTag;
+    	    } else if (tag instanceof ParamTag) {
+    	        ParamTag paramTag = (ParamTag) tag;
     	        builder.append( paramTag.parameterComment());
-            } else if (inlineTag.name().equals("Text")){
-                builder.append(inlineTag.text());
+            } else if (tag.name().equals("Text")){
+                builder.append(tag.text());
             }
 	    }
 	    return builder.toString();

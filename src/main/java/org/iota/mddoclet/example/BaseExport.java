@@ -1,5 +1,6 @@
 package org.iota.mddoclet.example;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 import org.iota.mddoclet.DocumentMethodAnnotation;
@@ -19,6 +20,8 @@ public abstract class BaseExport implements Export {
 	
 	protected String requestDelim, responseDelim;
 	protected String requestFormat, responseFormat;
+
+	private Random random = new Random();
 	
 	@Override
 	public String generateExample(MethodDoc command, DocumentMethodAnnotation api) {
@@ -44,7 +47,7 @@ public abstract class BaseExport implements Export {
 	@Override
 	public String generateResponse(MethodDoc command, DocumentMethodAnnotation api) {
 		String start = getResponse();
-		String responseObject = "\"duration\": " + exampleInt();
+		String responseObject = "\"duration\": " + randomInt();
 		if (!command.returnType().typeName().equals("void") && api.hasParam()) {
 			
 			//We assume its just returning an array of trytes, which the API calls without Response do
@@ -112,41 +115,52 @@ public abstract class BaseExport implements Export {
 		return example;
 	}
 	
-	private String getExampleData(String command, String name, String returnType) {
+	private String getExampleData(String command, String fullName, String returnType) {
+	    String name = fullName.toLowerCase();
+	    
 		//Blergh
-		if (name.equals("minWeightMagnitude")) {
+		if (name.equals("minweightmagnitude")) {
 			return "18";
 		} else if (name.equals("depth")) {
 			return "15";
 		} else if (name.equals("threshold")) {
 			return "100";
-		} else if (name.equals("uris")) {
+		} else if (name.startsWith("uri")) {
 			return "udp://8.8.8.8:14265";	
-		} else if (command.equals("getNodeInfo")) {
-			return name;
-		} else if (returnType.equals("String")) {
+		} else if (returnType.equals("Hash") || 
+		        name.equals("trytes") || name.equals("trytes2") || 
+		        name.contains("address") || 
+		        (name.contains("milestone") && !name.contains("index"))) {
+            return randomHash() + randomHash();
+		} else if (name.contains("memory")) {
+		    return randomInt(6) + "G";
+        } else if (returnType.equals("Integer") || returnType.equals("int")) {
+            return randomInt() + "";
+        } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
+            return randomBoolean();
+        } else if (returnType.equals("Neighbor") || returnType.equals("GetNeighborsResponse.Neighbor")) {
+            //TODO auto generate this
+            //TODO Solution if we dont want JSON response
+            return  "{ \n" +
+                "\"address\": \"/8.8.8.8:14265\", \n" +
+                "\"numberOfAllTransactions\": " + randomInt() + ", \n" +
+                "\"numberOfRandomTransactionRequests\": " + randomInt() + " \n" +
+                "\"numberOfNewTransactions\": " + randomInt() + " \n" +
+                "\"numberOfInvalidTransactions\": " + randomInt() + ", \n" +
+                "\"numberOfStaleTransactions\": " + randomInt() + " \n" +
+                "\"numberOfSentTransactions\": " + randomInt() + " \n" +
+                "\"connectiontype\": " + randomConnectionType() + " \n" +
+            "}";
+        } else if (command.equals("getNodeInfo")) {
+            return name;
+        } else if (returnType.equals("String")) {
 			return randomHash();
-		} else if (returnType.equals("Hash") || name.equals("trytes") || name.equals("trytes2")) {
-			return randomHash() + randomHash();
-		} else if (returnType.equals("Integer") || returnType.equals("int")) {
-			return exampleInt() + "";
-		} else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
-			return "true";
-		} else if (returnType.equals("Neighbor") || returnType.equals("GetNeighborsResponse.Neighbor")) {
-			//TODO auto generate this
-		    //TODO Solution if we dont want JSON response
-			return  "{ \n" +
-				"\"address\": \"/8.8.8.8:14265\", \n" +
-	            "\"numberOfAllTransactions\": " + exampleInt() + ", \n" +
-	            "\"numberOfInvalidTransactions\": " + exampleInt() + ", \n" +
-	            "\"numberOfNewTransactions\": " + exampleInt() + " \n" +
-	        "}";
 		}
 		
 		return name;
 	}
 
-	protected abstract String getPost();
+    protected abstract String getPost();
 
 	protected String getResponse() {
 		//Normally empty, could be filled with just duration, 
@@ -161,16 +175,41 @@ public abstract class BaseExport implements Export {
 	    return "\"" + COMMAND_NAME + "\": " + EXAMPLE;
 	}
 	
-	private String randomHash() {
-		return "P9KFSJVGSPLXAEBJSHWFZLGP9GGJTIO9YITDEHATDTGAFLPLBZ9FOFWWTKMAZXZHFGQHUOXLXUALY9999";
-	}
-	
-	protected int exampleInt() {
-		return new Random().nextInt(999) + 1;
-	}
-	
-    @Override
+	@Override
     public String getLanguage() {
         return getName();
+    }
+	
+	private String randomConnectionType() {
+        int rand = random.nextInt(2);
+        return rand == 0 ? "TCP" : "UDP";
+    }
+	
+	private String randomBoolean() {
+	    int rand = random.nextInt(2);
+        return rand == 0 ? "true" : "false";
+    }
+	
+	private String randomHash() {
+		return generateTrytes(81);
+	}
+	
+	private static final char[] TRYTE_ALPHABET = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+	public static String generateTrytes(int size) {
+        StringBuilder builder = new StringBuilder();
+        SecureRandom random = new SecureRandom();
+        for (int i = 0; i < size; i++) {
+            char c = TRYTE_ALPHABET[random.nextInt(TRYTE_ALPHABET.length)];
+            builder.append(c);
+        }
+        return builder.toString();
+    }
+	
+	protected int randomInt() {
+		return randomInt(999);
+	}
+	
+	protected int randomInt(int max) {
+        return random.nextInt(max) + 1;
     }
 }
