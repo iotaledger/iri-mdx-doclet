@@ -1,6 +1,7 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.iota.mddoclet.data.ReturnParam;
@@ -66,13 +67,15 @@ public final class Util {
                         return new ReturnParam[] {};
                     }
 
-                    ReturnParam[] finalTags = parseFields(doc);
+                    ReturnParam[] finalTags = parseGetters(doc);
                     return finalTags;
                 }
             }
             if (!method.returnType().typeName().equals("void") && api.hasParam()) {
-                return new ReturnParam[] { new ReturnParam(api.getParam(), processDescriptionAsMarkdown(tag.text()),
-                        method.returnType()) };
+                return new ReturnParam[] { 
+                    new ReturnParam(api.getParam(), processDescriptionAsMarkdown(tag.text()),
+                    method.returnType()) 
+                };
             } else {
                 int ret = tag.text().indexOf(": ");
                 String name = "";
@@ -86,7 +89,8 @@ public final class Util {
                     text = tag.text();
 
                 return new ReturnParam[] {
-                        new ReturnParam(name, processDescriptionAsMarkdown(text), method.returnType()) };
+                    new ReturnParam(name, processDescriptionAsMarkdown(text), method.returnType()) 
+                };
             }
 
         }
@@ -112,24 +116,35 @@ public final class Util {
         return params.toArray(new ReturnParam[params.size()]);
     }
 
-    public ReturnParam[] parseFields(ClassDoc doc) {
-        return parseFields(doc, new ArrayList<>()).toArray(new ReturnParam[] {});
+    public ReturnParam[] parseGetters(ClassDoc doc) {
+        return parseGetters(doc, new ArrayList<>()).toArray(new ReturnParam[] {});
     }
 
-    private List<ReturnParam> parseFields(ClassDoc doc, List<ReturnParam> tags) {
-        if (doc == null)
+    private List<ReturnParam> parseGetters(ClassDoc doc, List<ReturnParam> tags) {
+        if (doc == null) {
             return tags;
+        }
 
         if (doc.superclass() != null && !doc.superclass().name().equals(Object.class.getSimpleName())) {
-            parseFields(doc.superclass(), tags);
+            parseGetters(doc.superclass(), tags);
         }
-
-        for (FieldDoc field : doc.fields(false)) {
-            if (field.inlineTags().length > 0 || field.tags().length > 0) {
-                ReturnParam rp = new ReturnParam(field.name(), parseFieldText(field), field.type());
-                tags.add(rp);
+        
+        for (MethodDoc method : doc.methods()) {
+            String fieldName;
+            if (method.name().startsWith("get")) {
+                //Getter
+                fieldName = method.name().substring(3, 4).toLowerCase() + method.name().substring(4);
+            } else if (method.name().startsWith("is")) {
+                //Boolean
+                fieldName = method.name().substring(2, 3).toLowerCase() + method.name().substring(3);
+            } else {
+                continue;
             }
+            
+            ReturnParam rp = new ReturnParam(fieldName, parseFieldText(method), method.returnType());
+            tags.add(rp);
         }
+        
         return tags;
     }
 
@@ -171,7 +186,7 @@ public final class Util {
 
                 // We reference a class, parse its field like we do with a return type
                 if (seeTag.name().equals("@see")) {
-                    ReturnParam[] seeFields = parseFields(seeTag.referencedClass());
+                    ReturnParam[] seeFields = parseGetters(seeTag.referencedClass());
                     for (ReturnParam param : seeFields) {
                         // Keep this html default, markdown parse happens later, optionally
                         builder.append("<br/>");
@@ -185,12 +200,18 @@ public final class Util {
                     }
                 } else if (seeTag.name().equals("@link")) {
                     if (seeTag.referencedMember() != null) {
-                        if (repoUrl != null) {
-                            builder.append("[" + seeTag.referencedMemberName() + "](" + repoUrl
-                                    + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
-                                    + ".java#L" + seeTag.referencedMember().position().line() + ")");
+                        if (seeTag.referencedMember().isPrivate()) {
+                            // We linked to the javadoc of a field
+                            builder.append(parseFieldText(seeTag.referencedMember()));
+                            
                         } else {
-                            builder.append(seeTag.referencedMemberName());
+                            if (repoUrl != null) {
+                                builder.append("[" + seeTag.referencedMemberName() + "](" + repoUrl
+                                        + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
+                                        + ".java#L" + seeTag.referencedMember().position().line() + ")");
+                            } else {
+                                builder.append(seeTag.referencedMemberName());
+                            }
                         }
                     } else if (seeTag.referencedClass() != null) {
                         if (repoUrl != null) {
@@ -225,11 +246,17 @@ public final class Util {
             return "";
         }
     }
-
+    
     public String processDescriptionAsMarkdown(String text) {
+        return processDescriptionAsMarkdown(text, true);
+    }
+
+    public String processDescriptionAsMarkdown(String text, boolean removeLineEndings) {
         try {
             // Filter away any unwanted newlines.
-            text = text.replaceAll("\\r\\n|\\r|\\n", " ");
+            if (removeLineEndings) {
+                text = text.replaceAll("\\r\\n|\\r|\\n", "");
+            }
 
             // Bold
             text = text.replaceAll("<b>", "**").replaceAll("</b>", "**");
@@ -257,8 +284,9 @@ public final class Util {
 
             // Paragraphs are taken literally, so if its formatted visually ok, it will be
             // ok
-            text = text.replaceAll("<p>", "").replaceAll("</p>", "");
-
+            text = text.replaceAll("<p>", "").replaceAll("</p>", System.lineSeparator());
+            text = text.replaceAll("    ", "");
+            
             text = parseJavadocTag(text, "code", "`");
 
             return text;
