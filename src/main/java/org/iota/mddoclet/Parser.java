@@ -30,71 +30,72 @@ import org.iota.mddoclet.example.Export;
  */
 public class Parser {
 
-	private final Configuration configuration;
-	private final Util util;
+    private final Configuration configuration;
+    private final Util util;
 
-	private List<Export> exports;
+    private List<Export> exports;
 
-	Parser(Configuration configuration, Util util) {
-		this.configuration = configuration;
-		this.util = util;
-		this.exports = new ArrayList<>();
-	}
+    Parser(Configuration configuration, Util util) {
+        this.configuration = configuration;
+        this.util = util;
+        this.exports = new ArrayList<>();
+    }
 
-	public void renderMethod(OutputStream out, MethodDoc methodDoc, DocumentMethodAnnotation call) throws IOException, TemplateException {
-		Writer w = new OutputStreamWriter(out);
-		render(w, methodDoc, call);
-	}
+    public void renderMethod(OutputStream out, MethodDoc methodDoc, DocumentMethodAnnotation call)
+            throws IOException, TemplateException {
+        
+        Writer w = new OutputStreamWriter(out);
+        render(w, methodDoc, call);
+    }
 
-	private void render(Writer w, MethodDoc doc, DocumentMethodAnnotation api) throws IOException, TemplateException {
-		Template template = configuration.getTemplate(api.getTemplate().getFileName());
-		Map<String, Object> input = new HashMap<String, Object>();
+    private void render(Writer w, MethodDoc doc, DocumentMethodAnnotation api) throws IOException, TemplateException {
+        Template template = configuration.getTemplate(api.getTemplate().getFileName());
+        Map<String, Object> input = new HashMap<String, Object>();
 
-		// Check for return class
-		Tag[] returnTags = doc.tags("return");
-		ClassDoc c = util.getReturnClass(returnTags);
-		
-		if (c != null) {
-			input.put("returnclass", c);
-		} else {
-		    if (!doc.returnType().isPrimitive()) {
-		        input.put("returnclass", doc.returnType().asClassDoc());
-		    }
-		}
-		
-		//Only generate fields once, if c == null, returns empty list
-		ReturnParam[] returnFields = util.parseReturnTag(returnTags, c, doc, api);
-		ReturnParam[] parameters = util.parseParameters(doc);
+        // Check for return class
+        Tag[] returnTags = doc.tags("return");
+        ClassDoc c = util.getReturnClass(returnTags);
 
-		// Make the examples
-		Example[] examples = new Example[exports.size()];
-		for (int i = 0; i < exports.size(); i++) {
+        if (c != null) {
+            input.put("returnclass", c);
+        } else {
+            if (!doc.returnType().isPrimitive()) {
+                input.put("returnclass", doc.returnType().asClassDoc());
+            }
+        }
+
+        // Only generate fields once, if c == null, returns empty list
+        ReturnParam[] returnFields = util.parseReturnTag(returnTags, c, doc, api);
+        ReturnParam[] parameters = util.parseParameters(doc);
+
+        // Make the examples
+        Example[] examples = new Example[exports.size()];
+        for (int i = 0; i < exports.size(); i++) {
             Export x = exports.get(i);
-            
-			//Response based on return class or default + return var, or default in case of void
-			String response = x.generateResponse(doc, api, returnFields);
-			
-			examples[i] = new Example(
-				x.generateExample(doc, api), 
-				response,
-				x.generateError(), 
-				x.getName(),
-				x.getLanguage()
-			);
-			
-		}
-		
-		input.put("parameters", parameters);
-		input.put("returnParams", returnFields);
-		input.put("examples", examples);
-		input.put("lineNumber", doc.position().line() + "");
-		input.put("subject", doc);
-		input.put("util", util);
-		input.put("name", api.name());
-		template.process(input, w);
-	}
 
-	public void addExport(Export export) {
-		exports.add(export);
-	}
+            // Response based on return class or default + return var, or default in case of
+            // void
+            String response = x.generateResponse(doc, api, returnFields);
+
+            examples[i] = new Example(
+                    x.generateExample(doc, api), 
+                    response, 
+                    x.generateError(), 
+                    x.getName(),
+                    x.getLanguage());
+        }
+
+        input.put("parameters", parameters);
+        input.put("returnParams", returnFields);
+        input.put("examples", examples);
+        input.put("lineNumber", doc.position().line() + "");
+        input.put("subject", doc);
+        input.put("util", util);
+        input.put("name", api.name());
+        template.process(input, w);
+    }
+
+    public void addExport(Export export) {
+        exports.add(export);
+    }
 }
