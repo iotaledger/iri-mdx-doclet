@@ -284,6 +284,7 @@ public final class Util {
 
             // Paragraphs are taken literally, so if its formatted visually ok, it will be
             // ok
+            text = text.replaceAll("<br/>", System.lineSeparator());
             text = text.replaceAll("<p>", "").replaceAll("</p>", System.lineSeparator());
             text = text.replaceAll("    ", "");
             

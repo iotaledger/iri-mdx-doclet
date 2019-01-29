@@ -157,9 +157,11 @@ public abstract class BaseExport implements Export {
             return "100";
         } else if (name.startsWith("uri")) {
             return "udp://8.8.8.8:14265";
-        } else if (returnType.equals("Hash") || name.equals("trytes") || name.equals("trytes2")
-                || name.contains("address") || (name.contains("milestone") && !name.contains("index"))) {
-            return randomHash() + randomHash();
+        } else if (name.equals("trytes") || name.equals("trytes2")) {
+            return generateEllipseTrytes();
+        } else if (returnType.equals("Hash") || name.contains("address") || 
+                (name.contains("milestone") && !name.contains("index"))) {
+            return randomHash();
         } else if (name.contains("memory")) {
             return randomInt(6) + "G";
         } else if (returnType.equals("Integer") || returnType.equals("int")) {
@@ -249,8 +251,15 @@ public abstract class BaseExport implements Export {
         return generateTrytes(81);
     }
 
+    /**
+     * Generates 2 sections of trytes with ... inbetween
+     * @return
+     */
+    private String generateEllipseTrytes() {
+        return generateTrytes(25) + " ... " + generateTrytes(25);
+    }
+    
     private static final char[] TRYTE_ALPHABET = "9ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-
     public static String generateTrytes(int size) {
         StringBuilder builder = new StringBuilder();
         SecureRandom random = new SecureRandom();
