@@ -9,7 +9,7 @@ ${java.annotations_for(subject)} ${java.link(subject.returnType())} ${subject.na
 
 ${ util.parseCommentText(subject)}
 
-> **Important note:** This API is currently in Beta and is subject to change. Use of these APIs in production applications is not supported.
+> **Important:** This API is in beta, and is subject to change. We recommend that you don't use this API in production applications.
 <#if false>
 
 ## Permissions
