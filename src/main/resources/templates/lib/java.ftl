@@ -3,20 +3,54 @@
   <#assign  ret="" />
   <#if executableMemberDoc.annotations??>
     <#list executableMemberDoc.annotations() as annotationDesc>
-      <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
+      <#if annotationDesc.annotationType() != "org.iota.mddoclet.Document">
+        <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
+      </#if>
     </#list>
   </#if>
   <#return ret>
 </#function>
 
+<#function paramRequired paramType>
+<#if paramType.typeName() == "Optional">
+    <#return "Optional">
+<#else>
+    <#return "Required">
+</#if>
+</#function>
+
+<#function typeName type>
+    <#return type.typeName() + type.dimension()>
+</#function>
+
 <#function link type>
   <#if type.isPrimitive()>
-    <#return type.typeName()>
+    <#return typeName(type)>
   <#else>
-    <#if type.qualifiedTypeName()?starts_with("com.iota.") >
-      <#return "[" + type.typeName() + "](" + url(type) + ")">
+    <#if type.qualifiedTypeName()?starts_with("com.iota.") 
+    || type.qualifiedTypeName()?starts_with("org.iota.")
+    || type.qualifiedTypeName()?starts_with("jota.")
+    || util.getRepoUrl()?contains(type.qualifiedTypeName()?replace('.','/'))>
+    
+      <#return "[" + typeName(type) + "](" + url(type) + ")">
     <#else>
-      <#return type.qualifiedTypeName()>
+      <#if type.asParameterizedType()??>
+      
+        <#assign inner = "">
+        <#assign first = true>
+        <#list type.asParameterizedType().typeArguments() as innerTypes>
+          <#if first>
+            <#assign inner += link(innerTypes)>
+            <#assign first = false>
+          <#else>
+            <#assign inner += ", " + link(innerTypes)>
+          </#if>
+        </#list>
+      
+        <#return typeName(type) + "<" + inner + ">">
+      <#else>
+        <#return typeName(type)>
+      </#if>
     </#if> </#if>
 </#function>
 
@@ -36,7 +70,7 @@ TODO: configure root url
 TODO: configure root package
 -->
 <#function url type>
-  <#return "https://github.com/iotaledger/iri/blob/dev/src/main/java/" + type.qualifiedTypeName()?replace('.','/') + ".java"/>
+  <#return util.getRepoUrl() + type.qualifiedTypeName()?replace('.','/') + ".java"/>
 </#function>
 
 

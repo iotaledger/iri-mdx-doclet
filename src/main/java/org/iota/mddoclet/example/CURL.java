@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet.example;
+package org.iota.mddoclet.example;
 
 public class CURL extends BaseExport {
 
@@ -8,7 +8,10 @@ public class CURL extends BaseExport {
 			   "-X POST \n" +
 			   "-H 'Content-Type: application/json' \n" +
 			   "-H 'X-IOTA-API-Version: 1' \n" +
-			   "-d '" + BaseExport.CMD + "'";
+			   "-d '{ \n" +
+			     "\"command\": \"" + BaseExport.COMMAND_NAME + "\", \n" +
+			     BaseExport.PARAMETERS +
+			   "}'";
 	}
 
 	@Override

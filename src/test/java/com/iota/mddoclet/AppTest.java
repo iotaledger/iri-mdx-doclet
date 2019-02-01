@@ -1,4 +1,4 @@
-package com.iota.mdxdoclet;
+package com.iota.mddoclet;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
