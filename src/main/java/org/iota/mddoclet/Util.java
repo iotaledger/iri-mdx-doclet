@@ -124,6 +124,8 @@ public final class Util {
         if (doc == null) {
             return tags;
         }
+        
+        System.out.println("prsegetters: " + doc.name());
 
         if (doc.superclass() != null && !doc.superclass().name().equals(Object.class.getSimpleName())) {
             parseGetters(doc.superclass(), tags);
@@ -158,7 +160,13 @@ public final class Util {
         return processDescriptionAsMarkdown(builder.toString());
     }
 
+    /**
+     * Parses the field or methods javadoc
+     * @param field the Document reference to this field/method
+     * @return All the formatted text
+     */
     public String parseFieldText(Doc field) {
+        System.out.println("parseFieldText " + field.name());
         StringBuilder builder = new StringBuilder();
 
         // Parse inline tags, also called the regular comments
@@ -167,7 +175,10 @@ public final class Util {
         }
 
         // Parse the special tags, @see, @return, etc
-        for (Tag tag : field.tags()) {
+        // Reverse so @return (explanation) comes before @see (content)
+        for (int i = field.tags().length - 1; i >= 0; i--) {
+            Tag tag = field.tags()[i];
+            System.out.println("special " + tag.kind());
             builder.append(parseTag(tag));
         }
         return processDescriptionAsMarkdown(builder.toString());
@@ -175,7 +186,6 @@ public final class Util {
 
     public String parseTag(Tag tag) {
         StringBuilder builder = new StringBuilder();
-
         if (tag.inlineTags().length > 1) {
             for (Tag inlineTag : tag.inlineTags()) {
                 builder.append(parseTag(inlineTag));
@@ -186,10 +196,12 @@ public final class Util {
 
                 // We reference a class, parse its field like we do with a return type
                 if (seeTag.name().equals("@see")) {
+                    System.out.println(tag);
+                    System.out.println("parsing see");
                     ReturnParam[] seeFields = parseGetters(seeTag.referencedClass());
                     for (ReturnParam param : seeFields) {
                         // Keep this html default, markdown parse happens later, optionally
-                        builder.append("<br/>");
+                        builder.append("<BR/>");
                         builder.append("<b>");
                         builder.append(param.getName());
                         builder.append("</b>");
@@ -251,6 +263,14 @@ public final class Util {
         return processDescriptionAsMarkdown(text, true);
     }
 
+    /**
+     * CHanges HTML tags to Markdown tags.
+     * Note: When you use upper case tags, we don't replace them. This can be useful for table layout.
+     * 
+     * @param text
+     * @param removeLineEndings
+     * @return
+     */
     public String processDescriptionAsMarkdown(String text, boolean removeLineEndings) {
         try {
             // Filter away any unwanted newlines.
