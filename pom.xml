@@ -4,8 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>org.iota</groupId>
-	<artifactId>mddoclet</artifactId>
-	<version>0.2</version>
+	<artifactId>java-md-doclet</artifactId>
+	<version>0.3</version>
 	<packaging>jar</packaging>
 
 	<name>mddoclet</name>

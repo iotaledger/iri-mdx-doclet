@@ -38,6 +38,46 @@ public final class Util {
     public String getRepoUrl() {
         return repoUrl;
     }
+    
+    /**
+     * Checks if a type has dimensions
+     * Returns <code>false</code> if the Dimension contains primitive fields or Objects not from our package.
+     * 
+     * @param type The type to check
+     * @return
+     */
+    public boolean shouldDisplayDimensions(Type type) {
+        try {
+            if (type.asParameterizedType() != null) {
+                if (type.asParameterizedType().typeArguments().length > 1) {
+                    return true;
+                } else {
+                    String name = type.asParameterizedType().typeArguments()[0].qualifiedTypeName();
+                    return name.startsWith("com.iota.") || name.startsWith("org.iota.");
+                }
+            }
+            return !type.dimension().equals("");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    public String dimension(Type type) {
+        if (type.asParameterizedType() != null) {
+            return type.asParameterizedType().typeName();
+        } else if (type.dimension().equals("[]")){
+            return "Array";
+        } else if (type.dimension().equals("[][]")){
+            return "2 dimensional Array";
+        } else {
+            return "";
+        }
+    }
+    
+    public String dimensionType(Type type) {
+        return type.simpleTypeName();
+    }
 
     public boolean hasReturnClass(Tag[] tags) {
         return tags.length > 0 && tags[0].text().startsWith("{");
@@ -158,6 +198,11 @@ public final class Util {
         return processDescriptionAsMarkdown(builder.toString());
     }
 
+    /**
+     * Parses the field or methods javadoc
+     * @param field the Document reference to this field/method
+     * @return All the formatted text
+     */
     public String parseFieldText(Doc field) {
         StringBuilder builder = new StringBuilder();
 
@@ -167,7 +212,9 @@ public final class Util {
         }
 
         // Parse the special tags, @see, @return, etc
-        for (Tag tag : field.tags()) {
+        // Reverse so @return (explanation) comes before @see (content)
+        for (int i = field.tags().length - 1; i >= 0; i--) {
+            Tag tag = field.tags()[i];
             builder.append(parseTag(tag));
         }
         return processDescriptionAsMarkdown(builder.toString());
@@ -189,7 +236,7 @@ public final class Util {
                     ReturnParam[] seeFields = parseGetters(seeTag.referencedClass());
                     for (ReturnParam param : seeFields) {
                         // Keep this html default, markdown parse happens later, optionally
-                        builder.append("<br/>");
+                        builder.append("<BR/>");
                         builder.append("<b>");
                         builder.append(param.getName());
                         builder.append("</b>");
@@ -199,30 +246,7 @@ public final class Util {
                         }
                     }
                 } else if (seeTag.name().equals("@link")) {
-                    if (seeTag.referencedMember() != null) {
-                        if (seeTag.referencedMember().isPrivate()) {
-                            // We linked to the javadoc of a field
-                            builder.append(parseFieldText(seeTag.referencedMember()));
-                            
-                        } else {
-                            if (repoUrl != null) {
-                                builder.append("[" + seeTag.referencedMemberName() + "](" + repoUrl
-                                        + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
-                                        + ".java#L" + seeTag.referencedMember().position().line() + ")");
-                            } else {
-                                builder.append(seeTag.referencedMemberName());
-                            }
-                        }
-                    } else if (seeTag.referencedClass() != null) {
-                        if (repoUrl != null) {
-                            builder.append("[" + seeTag.referencedClass().name() + "](" + repoUrl
-                                    + seeTag.referencedClass().qualifiedName().replace('.', '/') + ".java)");
-                        } else {
-                            builder.append(seeTag.referencedClass().qualifiedName());
-                        }
-                    } else {
-                        // ??
-                    }
+                    builder.append(parseLinkAsUrl(seeTag));
                 }
             } else if (tag instanceof ParamTag) {
                 ParamTag paramTag = (ParamTag) tag;
@@ -233,24 +257,47 @@ public final class Util {
         }
         return builder.toString();
     }
-
-    public String dimension(Type type) {
-        try {
-            StringBuilder ret = new StringBuilder(type.qualifiedTypeName());
-            int dimension = Integer.parseInt(type.dimension());
-            for (int dim = 0; dim < dimension; dim++) {
-                ret.append("[]");
+    
+    public String parseLinkAsUrl(SeeTag seeTag) {
+        if (seeTag.referencedMember() != null) {
+            if (seeTag.referencedMember().isPrivate()) {
+                // We linked to the javadoc of a field
+                return parseFieldText(seeTag.referencedMember());
+                
+            } else {
+                if (repoUrl != null) {
+                    return "[" + seeTag.referencedMemberName() + "](" + repoUrl
+                            + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
+                            + ".java#L" + seeTag.referencedMember().position().line() + ")";
+                } else {
+                    return seeTag.referencedMemberName();
+                }
             }
-            return ret.toString();
-        } catch (Exception e) {
+        } else if (seeTag.referencedClass() != null) {
+            if (repoUrl != null) {
+                return "[" + seeTag.referencedClass().name() + "](" + repoUrl
+                        + seeTag.referencedClass().qualifiedName().replace('.', '/') + ".java)";
+            } else {
+                return seeTag.referencedClass().qualifiedName();
+            }
+        } else {
+            // ??
             return "";
         }
     }
-    
+
     public String processDescriptionAsMarkdown(String text) {
         return processDescriptionAsMarkdown(text, true);
     }
 
+    /**
+     * CHanges HTML tags to Markdown tags.
+     * Note: When you use upper case tags, we don't replace them. This can be useful for table layout.
+     * 
+     * @param text
+     * @param removeLineEndings
+     * @return
+     */
     public String processDescriptionAsMarkdown(String text, boolean removeLineEndings) {
         try {
             // Filter away any unwanted newlines.

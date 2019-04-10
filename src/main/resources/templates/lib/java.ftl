@@ -65,10 +65,7 @@
 </#function>
 
 
-<#--  Creating links:
-TODO: configure root url
-TODO: configure root package
--->
+<#--  Creating links: -->
 <#function url type>
   <#return util.getRepoUrl() + type.qualifiedTypeName()?replace('.','/') + ".java"/>
 </#function>
@@ -85,44 +82,13 @@ TODO: configure root package
 
 <#macro parameterList params isisvarag=false>
   <@compress  single_line=true>
-    <#if params??><#list params as param><@parameter param=param isisvarag=(isisvarag && !param?has_next)/><#sep>, </#sep></#list></#if>
+    <#if params??>
+        <#list params as param>
+            <@parameter param=param isisvarag=(isisvarag && !param?has_next)/>
+            <#sep>, </#sep>
+        </#list>
+    </#if>
   </@compress>
-</#macro>
-
-<#macro returnTags returnTags>
-  <#if returnTags??>
-|Return | Description |
-|--|--|
-    <#list returnTags as tag>
-      <@compress  single_line=true>
-        | ${tag.getName()} | ${tag.getText()} |
-      </@compress>
-      <#sep>
-
-      </#sep>
-    </#list>
-  </#if>
-</#macro>
-
-<#macro parameterTag tag>
-  <@compress  single_line=true>
-  | ${tag.parameterName()} | ${tag.parameterComment()} |
-  </@compress>
-</#macro>
-  
-<#macro parameterTags parameterTags>
-  <#if parameterTags??>
-|Parameters | Description |
-|--|--|
-    <#list parameterTags as tag>
-      <@compress  single_line=true>
-         <@parameterTag tag />
-    </@compress>
-      <#sep>
-
-      </#sep>
-    </#list>
-  </#if>
 </#macro>
 
 <#-- Method parameters -->

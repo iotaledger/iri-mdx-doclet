@@ -18,6 +18,16 @@ public class Java extends BaseExport {
 	protected String exampleParamTemplate() {
 	    return EXAMPLE;
 	}
+	
+	@Override
+	protected String getParamDelim() {
+	    return ", ";
+	}
+	
+	@Override
+	protected String getIndent(boolean request) {
+	    return request ? "" : super.getIndent(request);
+	}
 
 	@Override
 	public String getName() {

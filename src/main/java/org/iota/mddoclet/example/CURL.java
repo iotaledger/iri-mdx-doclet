@@ -9,7 +9,7 @@ public class CURL extends BaseExport {
 			   "-H 'Content-Type: application/json' \n" +
 			   "-H 'X-IOTA-API-Version: 1' \n" +
 			   "-d '{ \n" +
-			     "\"command\": \"" + BaseExport.COMMAND_NAME + "\", \n" +
+			     getIndent(true) + "\"command\": \"" + BaseExport.COMMAND_NAME + "\", \n" +
 			     BaseExport.PARAMETERS +
 			   "}'";
 	}

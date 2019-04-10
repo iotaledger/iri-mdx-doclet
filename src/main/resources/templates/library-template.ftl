@@ -21,6 +21,9 @@ ${ util.parseCommentText(subject)}
     
 <#if returnParams??>
 ## Output
+<#if util.shouldDisplayDimensions(subject.returnType())> 
+${java.link(subject.returnType())}, which contains the following fields:
+</#if>
 | Return type | Description |
 |--|--|
 <#list returnParams as field>
@@ -38,11 +41,15 @@ ${ util.parseCommentText(subject)}
 </#if>
 
 <#if (subject.seeTags()?size > 0) >
-<#list subject.seeTags() as see>
 ## Related APIs (link to other product documentation)
 | API     | Description |
 |:---------------|:--------|
-| [${java.link(see.referencedClassName())}]  | ${see.text()}  |
+<#list subject.seeTags() as see>
+<#if (see.label()?? && see.label() != "") >
+| ${util.parseLinkAsUrl(see)} | ${util.processDescriptionAsMarkdown(see.label())} |
+<#else>
+| ${util.parseLinkAsUrl(see)} | ${util.parseCommentText(see.referencedMember())} |
+</#if>
 </#list>
 </#if>
 

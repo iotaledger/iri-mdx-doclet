@@ -51,12 +51,12 @@ public abstract class BaseExport implements Export {
         for (Parameter p : command.parameters()) {
             String name = p.name();
 
-            if (!first)
+            if (!first) {
                 generatedParams.append(getParamDelim());
-            else
+            } else {
                 first = false;
-
-            generatedParams.append(generateExampleForCallAndType(api, name, p.type()));
+            }
+            generatedParams.append(getIndent(true) + generateExampleForCallAndType(api, name, p.type()));
         }
 
         post = post.replace(COMMAND_NAME, api.name());
@@ -90,8 +90,9 @@ public abstract class BaseExport implements Export {
 
             if (i != 0)
                 generatedCommand.append(", ");
-            generatedCommand.append(generateExampleForCallAndType(api, field.getName(), field.getReturnType()));
-
+            generatedCommand.append(getIndent(false) + 
+                    generateExampleForCallAndType(api, field.getName(), field.getReturnType())
+                    );
         }
         start = start.replace(CMD, generatedCommand.toString());
         return start;
@@ -120,9 +121,9 @@ public abstract class BaseExport implements Export {
         }
 
         StringBuilder generatedCommand = new StringBuilder("");
-
-        if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { // parameterized is a list of
-                                                                                         // sorts, or T
+        
+        // parameterized is a list of sorts, or T
+        if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { 
             generatedCommand.append("[");
             generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
             generatedCommand.append(", ");
@@ -171,15 +172,16 @@ public abstract class BaseExport implements Export {
         } else if (returnType.equals("Neighbor") || returnType.equals("GetNeighborsResponse.Neighbor")) {
             // TODO auto generate this
             // TODO Solution if we dont want JSON response
+            String indent = getIndent(false) + getIndent(false);
             return "{ \n" 
-                    + "\"address\": \"/8.8.8.8:14265\", \n" 
-                    + "\"numberOfAllTransactions\": " + randomInt() + ", \n" 
-                    + "\"numberOfRandomTransactionRequests\": " + randomInt() + " \n"
-                    + "\"numberOfNewTransactions\": " + randomInt() + " \n" 
-                    + "\"numberOfInvalidTransactions\": " + randomInt() + ", \n" 
-                    + "\"numberOfStaleTransactions\": " + randomInt() + " \n"
-                    + "\"numberOfSentTransactions\": " + randomInt() + " \n" 
-                    + "\"connectiontype\": " + randomConnectionType() + " \n" 
+                    + indent + "\"address\": \"8.8.8.8:14265\", \n" 
+                    + indent + "\"numberOfAllTransactions\": \"" + randomInt() + "\", \n" 
+                    + indent + "\"numberOfRandomTransactionRequests\": \"" + randomInt() + "\", \n"
+                    + indent + "\"numberOfNewTransactions\": \"" + randomInt() + "\", \n" 
+                    + indent + "\"numberOfInvalidTransactions\": \"" + randomInt() + "\", \n" 
+                    + indent + "\"numberOfStaleTransactions\": \"" + randomInt() + "\", \n"
+                    + indent + "\"numberOfSentTransactions\": \"" + randomInt() + "\", \n" 
+                    + indent + "\"connectiontype\": \"" + randomConnectionType() + "\", \n" 
                     + "}";
         } else if (command.equals("getNodeInfo")) {
             return name;
@@ -191,6 +193,23 @@ public abstract class BaseExport implements Export {
     }
 
     protected abstract String getPost();
+    
+    /**
+     * Indent used in calls like curl request/reply
+     * @return the spaces to use as indent
+     */
+    protected String getIndent(boolean request) {
+        return "/n  ";
+    }
+    
+    /**
+     * The delimiter used in between parameters
+     * 
+     * @return a string to be placed when another parameter follows
+     */
+    protected String getParamDelim() {
+        return ", /n";
+    }
 
     /**
      * The template for a response call
@@ -203,15 +222,6 @@ public abstract class BaseExport implements Export {
     }
 
     /**
-     * The delimitation used in between parameters
-     * 
-     * @return a string to be placed when another parameter follows
-     */
-    protected String getParamDelim() {
-        return ", ";
-    }
-
-    /**
      * The parameter has a format for displaying its example data.
      * 
      * @returnA string filled with {@value #COMMAND_NAME} and {@value #EXAMPLE}
@@ -220,6 +230,9 @@ public abstract class BaseExport implements Export {
         return "\"" + COMMAND_NAME + "\": " + EXAMPLE;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getLanguage() {
         return getName();
@@ -252,7 +265,11 @@ public abstract class BaseExport implements Export {
     }
 
     /**
+<<<<<<< HEAD
+     * Generates 2 sections of trytes with ... in between, 25 trytes long on each end
+=======
      * Generates 2 sections of trytes with ... inbetween
+>>>>>>> master
      * @return
      */
     private String generateEllipseTrytes() {
