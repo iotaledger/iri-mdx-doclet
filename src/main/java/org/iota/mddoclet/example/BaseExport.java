@@ -122,9 +122,9 @@ public abstract class BaseExport implements Export {
         }
 
         StringBuilder generatedCommand = new StringBuilder("");
-
-        if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { // parameterized is a list of
-                                                                                         // sorts, or T
+        
+        // parameterized is a list of sorts, or T
+        if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { 
             generatedCommand.append("[");
             generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
             generatedCommand.append(", ");
@@ -175,7 +175,7 @@ public abstract class BaseExport implements Export {
             // TODO Solution if we dont want JSON response
             String indent = getIndent(false) + getIndent(false);
             return "{ \n" 
-                    + indent + "\"address\": \"/8.8.8.8:14265\", \n" 
+                    + indent + "\"address\": \"8.8.8.8:14265\", \n" 
                     + indent + "\"numberOfAllTransactions\": \"" + randomInt() + "\", \n" 
                     + indent + "\"numberOfRandomTransactionRequests\": \"" + randomInt() + "\", \n"
                     + indent + "\"numberOfNewTransactions\": \"" + randomInt() + "\", \n" 
