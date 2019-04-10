@@ -51,12 +51,12 @@ public abstract class BaseExport implements Export {
         for (Parameter p : command.parameters()) {
             String name = p.name();
 
-            if (!first)
+            if (!first) {
                 generatedParams.append(getParamDelim());
-            else
+            } else {
                 first = false;
-
-            generatedParams.append("\n" + getIndent(true) + generateExampleForCallAndType(api, name, p.type()));
+            }
+            generatedParams.append(getIndent(true) + generateExampleForCallAndType(api, name, p.type()));
         }
 
         post = post.replace(COMMAND_NAME, api.name());
@@ -90,8 +90,7 @@ public abstract class BaseExport implements Export {
 
             if (i != 0)
                 generatedCommand.append(", ");
-            generatedCommand.append(
-                    "\n" + getIndent(false) + 
+            generatedCommand.append(getIndent(false) + 
                     generateExampleForCallAndType(api, field.getName(), field.getReturnType())
                     );
         }
@@ -200,7 +199,7 @@ public abstract class BaseExport implements Export {
      * @return the spaces to use as indent
      */
     protected String getIndent(boolean request) {
-        return "  ";
+        return "/n  ";
     }
     
     /**

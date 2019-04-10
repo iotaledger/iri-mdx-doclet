@@ -1,15 +1,12 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
 import org.iota.mddoclet.data.ReturnParam;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.ExecutableMemberDoc;
-import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
@@ -37,6 +34,45 @@ public final class Util {
 
     public String getRepoUrl() {
         return repoUrl;
+    }
+    
+    /**
+     * Checks if a type has dimensions
+     * Returns <code>false</code> if the Dimension contains primitive fields.
+     * 
+     * @param type The type to check
+     * @return
+     */
+    public boolean hasDimensions(Type type) {
+        try {
+            if (type.asParameterizedType() != null) {
+                if (type.asParameterizedType().typeArguments().length > 1) {
+                    return true;
+                } else {
+                    return type.asParameterizedType().typeArguments()[0].isPrimitive();
+                }
+            }
+            return !type.dimension().equals("");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    public String dimension(Type type) {
+        if (type.asParameterizedType() != null) {
+            return type.asParameterizedType().typeName();
+        } else if (type.dimension().equals("[]")){
+            return "Array";
+        } else if (type.dimension().equals("[][]")){
+            return "2 dimensional Array";
+        } else {
+            return "";
+        }
+    }
+    
+    public String dimensionType(Type type) {
+        return type.simpleTypeName();
     }
 
     public boolean hasReturnClass(Tag[] tags) {
@@ -124,8 +160,6 @@ public final class Util {
         if (doc == null) {
             return tags;
         }
-        
-        System.out.println("prsegetters: " + doc.name());
 
         if (doc.superclass() != null && !doc.superclass().name().equals(Object.class.getSimpleName())) {
             parseGetters(doc.superclass(), tags);
@@ -166,7 +200,6 @@ public final class Util {
      * @return All the formatted text
      */
     public String parseFieldText(Doc field) {
-        System.out.println("parseFieldText " + field.name());
         StringBuilder builder = new StringBuilder();
 
         // Parse inline tags, also called the regular comments
@@ -178,7 +211,6 @@ public final class Util {
         // Reverse so @return (explanation) comes before @see (content)
         for (int i = field.tags().length - 1; i >= 0; i--) {
             Tag tag = field.tags()[i];
-            System.out.println("special " + tag.kind());
             builder.append(parseTag(tag));
         }
         return processDescriptionAsMarkdown(builder.toString());
@@ -196,8 +228,6 @@ public final class Util {
 
                 // We reference a class, parse its field like we do with a return type
                 if (seeTag.name().equals("@see")) {
-                    System.out.println(tag);
-                    System.out.println("parsing see");
                     ReturnParam[] seeFields = parseGetters(seeTag.referencedClass());
                     for (ReturnParam param : seeFields) {
                         // Keep this html default, markdown parse happens later, optionally
@@ -211,30 +241,7 @@ public final class Util {
                         }
                     }
                 } else if (seeTag.name().equals("@link")) {
-                    if (seeTag.referencedMember() != null) {
-                        if (seeTag.referencedMember().isPrivate()) {
-                            // We linked to the javadoc of a field
-                            builder.append(parseFieldText(seeTag.referencedMember()));
-                            
-                        } else {
-                            if (repoUrl != null) {
-                                builder.append("[" + seeTag.referencedMemberName() + "](" + repoUrl
-                                        + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
-                                        + ".java#L" + seeTag.referencedMember().position().line() + ")");
-                            } else {
-                                builder.append(seeTag.referencedMemberName());
-                            }
-                        }
-                    } else if (seeTag.referencedClass() != null) {
-                        if (repoUrl != null) {
-                            builder.append("[" + seeTag.referencedClass().name() + "](" + repoUrl
-                                    + seeTag.referencedClass().qualifiedName().replace('.', '/') + ".java)");
-                        } else {
-                            builder.append(seeTag.referencedClass().qualifiedName());
-                        }
-                    } else {
-                        // ??
-                    }
+                    builder.append(parseLinkAsUrl(seeTag));
                 }
             } else if (tag instanceof ParamTag) {
                 ParamTag paramTag = (ParamTag) tag;
@@ -245,20 +252,35 @@ public final class Util {
         }
         return builder.toString();
     }
-
-    public String dimension(Type type) {
-        try {
-            StringBuilder ret = new StringBuilder(type.qualifiedTypeName());
-            int dimension = Integer.parseInt(type.dimension());
-            for (int dim = 0; dim < dimension; dim++) {
-                ret.append("[]");
+    
+    public String parseLinkAsUrl(SeeTag seeTag) {
+        if (seeTag.referencedMember() != null) {
+            if (seeTag.referencedMember().isPrivate()) {
+                // We linked to the javadoc of a field
+                return parseFieldText(seeTag.referencedMember());
+                
+            } else {
+                if (repoUrl != null) {
+                    return "[" + seeTag.referencedMemberName() + "](" + repoUrl
+                            + seeTag.referencedMember().containingClass().qualifiedName().replace('.', '/')
+                            + ".java#L" + seeTag.referencedMember().position().line() + ")";
+                } else {
+                    return seeTag.referencedMemberName();
+                }
             }
-            return ret.toString();
-        } catch (Exception e) {
+        } else if (seeTag.referencedClass() != null) {
+            if (repoUrl != null) {
+                return "[" + seeTag.referencedClass().name() + "](" + repoUrl
+                        + seeTag.referencedClass().qualifiedName().replace('.', '/') + ".java)";
+            } else {
+                return seeTag.referencedClass().qualifiedName();
+            }
+        } else {
+            // ??
             return "";
         }
     }
-    
+
     public String processDescriptionAsMarkdown(String text) {
         return processDescriptionAsMarkdown(text, true);
     }

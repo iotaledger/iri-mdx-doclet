@@ -20,6 +20,11 @@ public class Java extends BaseExport {
 	}
 	
 	@Override
+	protected String getParamDelim() {
+	    return ", ";
+	}
+	
+	@Override
 	protected String getIndent(boolean request) {
 	    return request ? "" : super.getIndent(request);
 	}
