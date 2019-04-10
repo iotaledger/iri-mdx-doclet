@@ -265,7 +265,11 @@ public abstract class BaseExport implements Export {
     }
 
     /**
+<<<<<<< HEAD
      * Generates 2 sections of trytes with ... in between, 25 trytes long on each end
+=======
+     * Generates 2 sections of trytes with ... inbetween
+>>>>>>> master
      * @return
      */
     private String generateEllipseTrytes() {

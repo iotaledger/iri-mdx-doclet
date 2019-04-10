@@ -1,12 +1,15 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 import org.iota.mddoclet.data.ReturnParam;
 
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.ExecutableMemberDoc;
+import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
@@ -218,6 +221,7 @@ public final class Util {
 
     public String parseTag(Tag tag) {
         StringBuilder builder = new StringBuilder();
+
         if (tag.inlineTags().length > 1) {
             for (Tag inlineTag : tag.inlineTags()) {
                 builder.append(parseTag(inlineTag));
