@@ -21,7 +21,7 @@ ${ util.parseCommentText(subject)}
     
 <#if returnParams??>
 ## Output
-<#if util.hasDimensions(subject.returnType())> 
+<#if util.shouldDisplayDimensions(subject.returnType())> 
 ${java.link(subject.returnType())}, which contains the following fields:
 </#if>
 | Return type | Description |

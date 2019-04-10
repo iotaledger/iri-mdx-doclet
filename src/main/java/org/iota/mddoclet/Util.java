@@ -41,18 +41,19 @@ public final class Util {
     
     /**
      * Checks if a type has dimensions
-     * Returns <code>false</code> if the Dimension contains primitive fields.
+     * Returns <code>false</code> if the Dimension contains primitive fields or Objects not from our package.
      * 
      * @param type The type to check
      * @return
      */
-    public boolean hasDimensions(Type type) {
+    public boolean shouldDisplayDimensions(Type type) {
         try {
             if (type.asParameterizedType() != null) {
                 if (type.asParameterizedType().typeArguments().length > 1) {
                     return true;
                 } else {
-                    return type.asParameterizedType().typeArguments()[0].isPrimitive();
+                    String name = type.asParameterizedType().typeArguments()[0].qualifiedTypeName();
+                    return name.startsWith("com.iota.") || name.startsWith("org.iota.");
                 }
             }
             return !type.dimension().equals("");
