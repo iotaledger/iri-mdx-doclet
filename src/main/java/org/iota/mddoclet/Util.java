@@ -1,7 +1,6 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.iota.mddoclet.data.ReturnParam;
@@ -9,7 +8,6 @@ import org.iota.mddoclet.data.ReturnParam;
 import com.sun.javadoc.ClassDoc;
 import com.sun.javadoc.Doc;
 import com.sun.javadoc.ExecutableMemberDoc;
-import com.sun.javadoc.FieldDoc;
 import com.sun.javadoc.MethodDoc;
 import com.sun.javadoc.ParamTag;
 import com.sun.javadoc.Parameter;
@@ -190,10 +188,15 @@ public final class Util {
 
     public String parseCommentText(Doc field) {
         StringBuilder builder = new StringBuilder();
-
+        
         // Parse inline tags, also called the regular comments
         for (Tag inlineTag : field.inlineTags()) {
-            builder.append(parseTag(inlineTag));
+            if (inlineTag.name().equals("@inheritDoc") && field instanceof MethodDoc) {
+                MethodDoc overriddenMethod = getOverridenMethod((MethodDoc)field);
+                builder.append(parseCommentText(overriddenMethod));
+            } else {
+                builder.append(parseTag(inlineTag));
+            }
         }
         return processDescriptionAsMarkdown(builder.toString());
     }
@@ -395,6 +398,38 @@ public final class Util {
             }
         }
         return "";
+    }
+    
+    public MethodDoc getOverridenMethod(MethodDoc m) {
+        if (m.overriddenMethod() != null) {
+            return m.overriddenMethod();
+        }
+        
+        MethodDoc found;
+        for (ClassDoc c : m.containingClass().interfaces()) {
+            found = checkClassForMethod(c, m);
+            if (found != null) {
+                return found;
+            }
+        }
+        
+        for (ClassDoc c : m.containingClass().innerClasses(true)) {
+            found = checkClassForMethod(c, m);
+            if (found != null) {
+                return found;
+            }
+        }
+        
+        return null;
+    }
+    
+    private MethodDoc checkClassForMethod(ClassDoc c, MethodDoc m) {
+        for (MethodDoc method : c.methods(true)){
+            if (method.name().equals(m.name())) {
+                return method;
+            }
+        }
+        return null;
     }
 
     public String getParamComment(TypeVariable variable) {
