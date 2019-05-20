@@ -3,7 +3,8 @@
   <#assign  ret="" />
   <#if executableMemberDoc.annotations??>
     <#list executableMemberDoc.annotations() as annotationDesc>
-      <#if annotationDesc.annotationType() != "org.iota.mddoclet.Document">
+      <#if annotationDesc.annotationType() != "org.iota.mddoclet.Document"
+      && annotationDesc.annotationType() != "java.lang.Override">
         <#assign ret += "@" + link(annotationDesc.annotationType()) + "\n" />
       </#if>
     </#list>
