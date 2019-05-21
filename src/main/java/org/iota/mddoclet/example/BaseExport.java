@@ -59,9 +59,14 @@ public abstract class BaseExport implements Export {
             generatedParams.append(getIndent(true) + generateExampleForCallAndType(api, name, p.type()));
         }
 
+        String type = command.returnType().simpleTypeName();
+        if (command.returnType().asParameterizedType() != null) {
+            type = type + "<" + command.returnType().asParameterizedType().typeArguments()[0].typeName() + ">";
+        }
+        
         post = post.replace(COMMAND_NAME, api.name());
         post = post.replace(PARAMETERS, generatedParams.toString());
-        post = post.replace(TYPE, command.returnType().simpleTypeName());
+        post = post.replace(TYPE, type);
         return post;
     }
 

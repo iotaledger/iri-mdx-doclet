@@ -1,6 +1,7 @@
 package org.iota.mddoclet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.iota.mddoclet.data.ReturnParam;
@@ -46,7 +47,9 @@ public final class Util {
      */
     public boolean shouldDisplayDimensions(Type type) {
         try {
-            if (type.asParameterizedType() != null) {
+            if (type.asParameterizedType() != null 
+                    && !type.typeName().equals("Future")
+                    && !type.typeName().equals("Optional")) {
                 if (type.asParameterizedType().typeArguments().length > 1) {
                     return true;
                 } else {
@@ -90,8 +93,6 @@ public final class Util {
                     return seeTag.referencedClass();
                 }
             }
-
-            return null;
         }
         return null;
     }
@@ -99,6 +100,7 @@ public final class Util {
     public ReturnParam[] parseReturnTag(Tag[] tags, ClassDoc doc, MethodDoc method, DocumentMethodAnnotation api) {
         if (tags.length > 0) {
             Tag tag = tags[0];
+            // If this returns an object, parse that objects fields
             for (Tag t : tag.inlineTags()) {
                 if (t.name().equals("@link")) {
                     if (doc == null) {
@@ -109,12 +111,17 @@ public final class Util {
                     return finalTags;
                 }
             }
+            
+            // Just has a @return without text
             if (!method.returnType().typeName().equals("void") && api.hasParam()) {
+                // We defined the name in the annotation
+                
                 return new ReturnParam[] { 
                     new ReturnParam(api.getParam(), processDescriptionAsMarkdown(tag.text()),
                     method.returnType()) 
                 };
             } else {
+                // Attempt to get the name by splitting
                 int ret = tag.text().indexOf(": ");
                 String name = "";
                 if (ret > -1)
@@ -131,8 +138,14 @@ public final class Util {
                 };
             }
 
+        } else if (!method.returnType().typeName().equals("void")) {
+            return new ReturnParam[] {
+                    new ReturnParam("", 
+                                    "missing description", 
+                                    method.returnType())
+                };
         }
-
+        
         return new ReturnParam[] {};
     }
 
@@ -149,6 +162,20 @@ public final class Util {
 
             ReturnParam rp = new ReturnParam(param.name(), description, param.type());
             params.add(rp);
+        }
+        
+        if (hasInheritDoc(doc)) {
+            ReturnParam[] superParams = parseParameters(getOverridenMethod(doc));
+            for (ReturnParam currentPar : params) {
+                if (currentPar.getText().equals("missing description")) {
+                    for (ReturnParam par : superParams) {
+                        if (currentPar.getName().equals(par.getName())) {
+                            currentPar.setText(par.getText());
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         return params.toArray(new ReturnParam[params.size()]);
@@ -400,6 +427,13 @@ public final class Util {
         return "";
     }
     
+    /**
+     * Gets the method that  this method implements or overrides.
+     * Only checks one "class" deep
+     * 
+     * @param m The method we are 
+     * @return
+     */
     public MethodDoc getOverridenMethod(MethodDoc m) {
         if (m.overriddenMethod() != null) {
             return m.overriddenMethod();
@@ -421,6 +455,15 @@ public final class Util {
         }
         
         return null;
+    }
+    
+    private boolean hasInheritDoc(MethodDoc doc) {
+        for (Tag t : doc.inlineTags()) {
+            if (t.name().equals("@inheritDoc")) {
+                return true;
+            }
+        }
+        return false;
     }
     
     private MethodDoc checkClassForMethod(ClassDoc c, MethodDoc m) {

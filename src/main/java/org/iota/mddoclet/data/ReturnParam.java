@@ -66,4 +66,23 @@ public class ReturnParam {
 	public String getText() {
 		return text;
 	}
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setReturnType(Type returnType) {
+        this.returnType = returnType;
+    }
+
+    @Override
+    public String toString() {
+        return "ReturnParam [text=" + text + ", name=" + name + ", returnType=" + returnType + "]";
+    }
+    
+    
 }

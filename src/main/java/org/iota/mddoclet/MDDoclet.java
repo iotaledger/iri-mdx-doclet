@@ -23,6 +23,7 @@ import com.sun.javadoc.DocErrorReporter;
 import com.sun.javadoc.Doclet;
 import com.sun.javadoc.LanguageVersion;
 import com.sun.javadoc.MethodDoc;
+import com.sun.javadoc.Parameter;
 import com.sun.javadoc.RootDoc;
 
 import freemarker.template.Configuration;
@@ -79,8 +80,13 @@ public class MDDoclet extends Doclet {
         for (MethodDoc m : apiDoc.methods(false)) {
             DocumentMethodAnnotation call = getAnnotationData(m, Document.class.getSimpleName());
             if (call != null) {
-                log.info("Generating " + call);
                 File classFile = new File(call.name() + extension);
+                if (classFile.exists()) {
+                    classFile = new File(call.name() + "(" + paramString(m.parameters()) + ")" + extension);
+                }
+
+                log.info("Generating Document(" + classFile.getName() + ")");
+                
                 try (FileOutputStream fileOutputStream = new FileOutputStream(classFile);
                         BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream)) {
 
@@ -94,6 +100,18 @@ public class MDDoclet extends Doclet {
                 }
             }
         }
+    }
+
+    private String paramString(Parameter[] parameters) {
+        StringBuilder builder = new StringBuilder();
+        for (Parameter p : parameters) {
+            if (builder.length() != 0) {
+                builder.append(", ");
+            }
+            builder.append(p.name());
+        }
+        
+        return builder.toString();
     }
 
     /**
