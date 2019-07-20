@@ -36,14 +36,6 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.3</version>
         </dependency>
-		
-		<dependency>
-			<scope>system</scope>
-			<groupId>com.sun</groupId>
-			<artifactId>tools</artifactId>
-			<version>${java-version}</version>
-			<systemPath>${toolsjar}</systemPath>
-		</dependency>
 
 		<!-- Template generator for the MD files -->
 		<dependency>
@@ -51,34 +43,17 @@
 			<artifactId>freemarker</artifactId>
 			<version>2.3.26-incubating</version>
 		</dependency>
+		
+		<!-- Wrapper for tools.jar import in both 1.8 and 1.9+ java -->
+		<dependency>
+		  <groupId>com.github.olivergondza</groupId>
+		  <artifactId>maven-jdk-tools-wrapper</artifactId>
+		  <version>0.1</version>
+		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
-			<!--  
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<Main-Class>org.iota.mdxdoclet.MDDoclet</Main-Class>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -100,32 +75,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>default-profile</id>
-			<activation>
-				<activeByDefault>true</activeByDefault>
-				<file>
-					<exists>${java.home}/../lib/tools.jar</exists>
-				</file>
-			</activation>
-			<properties>
-				<toolsjar>${java.home}/../lib/tools.jar</toolsjar>
-			</properties>
-		</profile>
-		
-		<profile>
-			<id>mac-profile</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<file>
-					<exists>${java.home}/../Classes/classes.jar</exists>
-				</file>
-			</activation>
-			<properties>
-				<toolsjar>${java.home}/../Classes/classes.jar</toolsjar>
-			</properties>
-		</profile>
-	</profiles>
 </project>
