@@ -1,4 +1,4 @@
-# iri-mdx-doclet
+# iri-md-doclet
 Java Doclet for generating MD files from Javadoc
 
 ### Run
@@ -30,7 +30,7 @@ By default, this outputs into ```target/site/```
                 </additionalOptions>
                 <quiet>true</quiet>
                 <docletArtifact>
-                    <groupId>org.iota</groupId>
+                    <groupId>com.github.iotaledger</groupId>
                     <artifactId>java-md-doclet</artifactId>
                     <version>2.2</version>
                 </docletArtifact>
