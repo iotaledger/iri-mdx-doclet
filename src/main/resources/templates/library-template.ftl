@@ -36,7 +36,7 @@ ${java.link(subject.returnType())}, which contains the following fields:
 | Exceptions     | Description |
 |:---------------|:--------|
 <#list subject.throwsTags() as exception>
-| ${java.link(exception.exceptionType())} | ${exception.exceptionComment()} |
+| ${java.link(exception.exceptionType())} | ${util.processDescriptionAsMarkdown(exception.exceptionComment())} |
 </#list>
 </#if>
 
