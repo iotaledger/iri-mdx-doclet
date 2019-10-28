@@ -44,7 +44,7 @@ public abstract class BaseExport implements Export {
 
     @Override
     public String generateExample(MethodDoc command, DocumentMethodAnnotation api) {
-        String post = getPost();
+        String post = getPost(command.returnType().typeName().equalsIgnoreCase("void"), command);
 
         StringBuilder generatedParams = new StringBuilder();
         boolean first = true;
@@ -58,10 +58,11 @@ public abstract class BaseExport implements Export {
             }
             generatedParams.append(getIndent(true) + generateExampleForCallAndType(api, name, p.type()));
         }
-
         String type = command.returnType().simpleTypeName();
         if (command.returnType().asParameterizedType() != null) {
             type = type + "<" + command.returnType().asParameterizedType().typeArguments()[0].typeName() + ">";
+        } else if (command.returnType().dimension().equals("[]")) { 
+            type += "[]";
         }
         
         post = post.replace(COMMAND_NAME, api.name());
@@ -125,23 +126,53 @@ public abstract class BaseExport implements Export {
             type = argType.asParameterizedType().typeArguments()[0].typeName();
         }
 
+        String q = addQuotes(type) ? "\"" : "";
         StringBuilder generatedCommand = new StringBuilder("");
         
-        // parameterized is a list of sorts, or T
-        if (argType.dimension().equals("[]") || argType.asParameterizedType() != null) { 
-            generatedCommand.append("[");
-            generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
+        
+        if (argType.dimension().equals("[]")) { 
+            // Array
+            generatedCommand.append(arrayStart(type));
+            generatedCommand.append(q + getExampleData(api.name(), argName, type) + q);
             generatedCommand.append(", ");
-            generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
-            generatedCommand.append("]");
+            generatedCommand.append(q + getExampleData(api.name(), argName, type) + q);
+            generatedCommand.append(arrayEnd(type));
+        } else if (argType.asParameterizedType() != null) {
+            if (argType.simpleTypeName().equals("Optional")) {
+                // Ugly fix, but its only in java anyways
+                generatedCommand.append("Optional.of(" + q +  getExampleData(api.name(), argName, type) + q +  "");
+            } else {
+                // parameterized is a list of sorts, or T
+                generatedCommand.append(parameterisedStart(type, argType));
+                generatedCommand.append(q + getExampleData(api.name(), argName, type) + q);
+                generatedCommand.append(", ");
+                generatedCommand.append(q + getExampleData(api.name(), argName, type) + q);
+                generatedCommand.append(parameterisedEnd(type, argType));
+            }
         } else {
-            generatedCommand.append("\"" + getExampleData(api.name(), argName, type) + "\"");
+            generatedCommand.append(q + getExampleData(api.name(), argName, type) + q);
         }
 
         example = example.replace(EXAMPLE, generatedCommand.toString());
         example = example.replace(COMMAND_NAME, argName);
         example = example.replace(TYPE, type);
         return example;
+    }
+
+    protected String parameterisedEnd(String type, Type argType) {
+        return arrayEnd(type);
+    }
+
+    protected String parameterisedStart(String type, Type argType) {
+        return arrayStart(type);
+    }
+
+    protected String arrayEnd(String type) {
+        return "]";
+    }
+
+    protected String arrayStart(String type) {
+        return "[";
     }
 
     /**
@@ -152,25 +183,31 @@ public abstract class BaseExport implements Export {
      * @param returnType The return type of the parameter
      * @return Example data
      */
-    private String getExampleData(String command, String fullName, String returnType) {
+    protected String getExampleData(String command, String fullName, String returnType) {
         String name = fullName.toLowerCase();
 
         if (name.equals("minweightmagnitude")) {
             return "18";
         } else if (name.equals("depth")) {
             return "15";
+        } else if (name.equals("security")) {
+            return "3";
         } else if (name.equals("threshold")) {
             return "100";
         } else if (name.startsWith("uri")) {
-            return "udp://8.8.8.8:14265";
-        } else if (name.equals("trytes") || name.equals("trytes2")) {
+            return "tcp://8.8.8.8:14265";
+        } else if (name.equals("trytes") || name.equals("trytes2") || name.contains("signature")) {
             return generateEllipseTrytes();
         } else if (returnType.equals("Hash") || name.contains("address") || 
                 (name.contains("milestone") && !name.contains("index"))) {
             return randomHash();
+        } else if (name.contains("tag")) {
+            return "TAG9" + generateTrytes(23);
+        } else if (name.equals("seed")) {
+            return "YOUR9SECRET9SEED9999999...";
         } else if (name.contains("memory")) {
             return randomInt(6) + "G";
-        } else if (returnType.equals("Integer") || returnType.equals("int")) {
+        } else if (returnType.equals("Integer") || returnType.equals("int") || returnType.equals("long")) {
             return randomInt() + "";
         } else if (returnType.equals("Boolean") || returnType.equals("boolean")) {
             return randomBoolean();
@@ -197,7 +234,7 @@ public abstract class BaseExport implements Export {
         return name;
     }
 
-    protected abstract String getPost();
+    protected abstract String getPost(boolean isVoid, MethodDoc command);
     
     /**
      * Indent used in calls like curl request/reply
@@ -214,6 +251,15 @@ public abstract class BaseExport implements Export {
      */
     protected String getParamDelim() {
         return ", /n";
+    }
+    
+    /**
+     * 
+     * @param type
+     * @return
+     */
+    protected boolean addQuotes(String type) {
+        return true;
     }
 
     /**
@@ -256,7 +302,7 @@ public abstract class BaseExport implements Export {
      * 
      * @return true or false randomly
      */
-    private String randomBoolean() {
+    protected String randomBoolean() {
         int rand = random.nextInt(2);
         return rand == 0 ? "true" : "false";
     }
@@ -265,19 +311,16 @@ public abstract class BaseExport implements Export {
      * 
      * @return A random string of 81 trytes
      */
-    private String randomHash() {
+    protected String randomHash() {
         return generateTrytes(81);
     }
 
     /**
-<<<<<<< HEAD
      * Generates 2 sections of trytes with ... in between, 25 trytes long on each end
-=======
-     * Generates 2 sections of trytes with ... inbetween
->>>>>>> master
+     * 
      * @return
      */
-    private String generateEllipseTrytes() {
+    protected String generateEllipseTrytes() {
         return generateTrytes(25) + " ... " + generateTrytes(25);
     }
     

@@ -1,9 +1,11 @@
 package org.iota.mddoclet.example;
 
+import com.sun.javadoc.MethodDoc;
+
 public class CURL extends BaseExport {
 
 	@Override
-	protected String getPost() {
+	protected String getPost(boolean isVoid, MethodDoc command) {
 		return "curl http://localhost:14265 \n" +
 			   "-X POST \n" +
 			   "-H 'Content-Type: application/json' \n" +

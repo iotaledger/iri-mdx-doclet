@@ -1,8 +1,10 @@
 package org.iota.mddoclet.example;
 
+import com.sun.javadoc.MethodDoc;
+
 public class NodeJS extends BaseExport {
 	@Override
-	protected String getPost() {
+	protected String getPost(boolean isVoid, MethodDoc command) {
 		return "var request = require('request');\n" + 
 				"\n" + 
 				"var command = {\n" +

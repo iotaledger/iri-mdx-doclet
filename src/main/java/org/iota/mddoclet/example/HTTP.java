@@ -1,11 +1,13 @@
 package org.iota.mddoclet.example;
 
+import com.sun.javadoc.MethodDoc;
+
 public class HTTP extends BaseExport {
 
     //TODO: Separate request and response delim & template
     
 	@Override
-	protected String getPost() {
+	protected String getPost(boolean isVoid, MethodDoc command) {
 	    return "GET http://localhost:14265/" + BaseExport.COMMAND_NAME + "?" + BaseExport.PARAMETERS;
 	}
 	

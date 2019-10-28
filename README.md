@@ -1,5 +1,5 @@
 # iri-mdx-doclet
-Java Doclet for generating MDX files from Javadoc
+Java Doclet for generating MD files from Javadoc
 
 ### Run
 Clone project, then run with maven:
@@ -13,21 +13,32 @@ By default, this outputs into ```target/site/```
 <plugin>
     <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-javadoc-plugin</artifactId>
-    <version>3.0.0</version>
-    <configuration>
-        <doclet>com.iota.mdxdoclet.MDXDoclet</doclet>
-        <sourcepath>src/main/java</sourcepath>
-        <useStandardDocletOptions>false</useStandardDocletOptions>
-        <destDir>docs</destDir>
-        <additionalOptions>
-            <additionalOption>-version "${project.version}"</additionalOption>
-        </additionalOptions>
-        <quiet>true</quiet>
-        <docletArtifact>
-            <groupId>com.iota</groupId>
-            <artifactId>mdxdoclet</artifactId>
-            <version>0.1</version>
-        </docletArtifact>
-    </configuration>
+    <version>${version.maven-javadoc-plugin}</version>
+    <reportSets>
+        <reportSet>
+            <id>javadoc</id>
+            <configuration>
+                <doclet>org.iota.mddoclet.MDDoclet</doclet>
+                <sourcepath>src/main/java</sourcepath>
+                <useStandardDocletOptions>false</useStandardDocletOptions>
+                <additionalOptions>
+                    <additionalOption>-version "${project.version}"</additionalOption>
+                    <additionalOption>-template "iota-java"</additionalOption>
+                    <additionalOption>
+                        -repolink "https://github.com/iotaledger/iota-java/blob/master/jota/src/main/java/"
+                    </additionalOption>
+                </additionalOptions>
+                <quiet>true</quiet>
+                <docletArtifact>
+                    <groupId>org.iota</groupId>
+                    <artifactId>java-md-doclet</artifactId>
+                    <version>2.2</version>
+                </docletArtifact>
+            </configuration>
+            <reports>
+                <report>javadoc</report>
+            </reports>
+        </reportSet>
+    </reportSets>
 </plugin>
 ```

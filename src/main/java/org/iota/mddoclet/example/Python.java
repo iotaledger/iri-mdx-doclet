@@ -1,9 +1,11 @@
 package org.iota.mddoclet.example;
 
+import com.sun.javadoc.MethodDoc;
+
 public class Python extends BaseExport {
 
 	@Override
-	protected String getPost() {
+	protected String getPost(boolean isVoid, MethodDoc command) {
 		return "import urllib2\n" + 
 				"import json\n" + 
 				"\n" + 
@@ -17,11 +19,13 @@ public class Python extends BaseExport {
 				"}\n" + 
 				"\n" + 
 				"request = urllib2.Request(url=\"http://localhost:14265\", data=stringified, headers=headers)\n" + 
-				"returnData = urllib2.urlopen(request).read()\n" + 
-				"\n" + 
-				"jsonData = json.loads(returnData)\n" + 
-				"\n" + 
-				"print jsonData";
+				(isVoid ? 
+    				"returnData = urllib2.urlopen(request).read()\n" + 
+    				"\n" + 
+    				"jsonData = json.loads(returnData)\n" + 
+    				"\n" + 
+    				"print jsonData"
+    			: "urllib2.urlopen(request).read()\\n");
 	}
 
 	@Override
